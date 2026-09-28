@@ -4,12 +4,12 @@
 // Creation Date  : 2026-09-27
 // Version        : 1.0
 // Description    : Parameterized synchronous delay feedback shift-register buffer.
-//                  Supports arbitrary depth DEPTH in {16, 8, 4, 2, 1} for storing
+//                  Supports arbitrary depth DEPTH (e.g., N/2, N/4, ..., 2, 1) for storing
 //                  intermediate butterfly differences and input samples.
 //                  Data elements are complex numbers (16-bit Re + 16-bit Im).
 // =============================================================================
 
-import fft32_pkg::*;
+import fft_pkg::*;
 
 module delay_feedback_line #(
     parameter int DEPTH = 16

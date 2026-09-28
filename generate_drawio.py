@@ -312,4 +312,4 @@ def generate_clean_drawio(filename):
     print(f"Generated clean schematic with simplified I/O {filename} successfully!")
 
 if __name__ == "__main__":
-    generate_clean_drawio("c:/MY_PROJETS/RTL2GDS_FFT32/FFT32_R2SDF_Architecture.drawio")
+    generate_clean_drawio("FFT32_R2SDF_Architecture.drawio")

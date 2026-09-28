@@ -1,6 +1,10 @@
 # =========================================================================
-# QuestaSim Master Simulation Script for 32-Point DIF R2SDF FFT Core
-# Usage inside QuestaSim: do run.do
+# QuestaSim Master Simulation Script for Parameterized DIF R2SDF FFT Core
+# Usage:
+#   do run.do       (Defaults to N=32)
+#   do run.do 32    (Runs 32-point FFT)
+#   do run.do 64    (Runs 64-point FFT)
+#   do run.do <N>   (Runs N-point FFT)
 # =========================================================================
 
 # 1. Close any running simulation and clean old libraries/logs
@@ -12,25 +16,33 @@ if [file exists sim.log] {
     file delete -force sim.log
 }
 
-# 2. Create library and map work
+# 2. Determine target N (defaults to 32 if no argument passed)
+set N 32
+if {$argc > 0} {
+    set N $1
+}
+
+# 3. Create library and map work
 vlib work   
 vmap work work
 
-# 3. Enable transcript logging to sim.log
+# 4. Enable transcript logging to sim.log
 transcript on
 transcript file sim.log
 
-# 4. Compile all SystemVerilog files using file lists
+# 5. Compile all SystemVerilog files using file lists
 vlog -sv -work work -f incdir_list.txt -f verilog_list.txt
 
-# 5. Start simulation with memory file plusargs
-vsim -voptargs=+acc work.fft32_TB +STIM_FILE=../model/stimulus_in.mem +GOLDEN_FILE=../model/golden_out.mem
+# 6. Start simulation with parameterized N
+vsim -voptargs=+acc -gN=$N work.fft_TB
 
-# 6. Add waveforms (in GUI mode) and run
+# 7. Run simulation (batch exits cleanly, GUI opens waveforms)
 if {[batch_mode]} {
     run -all
     quit -f
 } else {
-    do wave.do
+    if [file exists wave.do] {
+        do wave.do
+    }
     run -all
 }

@@ -11,7 +11,7 @@
 //                  corner-case saturation clamping to prevent word-width growth.
 // =============================================================================
 
-import fft32_pkg::*;
+import fft_pkg::*;
 
 module butterfly_radix2 (
     input  wire complex_t a,

@@ -2,41 +2,39 @@
 // File Name      : fft_controller.sv
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-09-27
-// Version        : 1.0
-// Description    : Central timing and synchronization controller for the R2SDF pipeline.
+// Version        : 1.1
+// Description    : Parameterized timing and synchronization controller for R2SDF pipeline.
 //                  Includes:
-//                    - 5-bit sample counter (cnt[4:0])
-//                    - Synchronous stage steering decoders (stage1_sel .. stage5_sel)
-//                    - Twiddle ROM address generators (stage1_tw_addr .. stage4_tw_addr)
-//                    - 31-cycle pipeline latency shift register for valid_out
+//                    - Parameterized sample counter (cnt[NUM_STAGES-1:0])
+//                    - Parameterized stage steering decoders (stage_sel[s] = cnt[S-1-s])
+//                    - Twiddle ROM address generators (stage_tw_addr[s])
+//                    - (N-1)-cycle pipeline latency shift register for valid_out
 //                    - Automatic flush controller (flush_cnt) to empty in-flight samples
 // =============================================================================
 
-import fft32_pkg::*;
+import fft_pkg::*;
 
-module fft_controller (
-    input  logic       clk,
-    input  logic       rst_n,
-    input  logic       valid_in,
-    output logic       stage1_sel,
-    output logic [3:0] stage1_tw_addr,
-    output logic       stage2_sel,
-    output logic [3:0] stage2_tw_addr,
-    output logic       stage3_sel,
-    output logic [3:0] stage3_tw_addr,
-    output logic       stage4_sel,
-    output logic [3:0] stage4_tw_addr,
-    output logic       stage5_sel,
-    output logic       core_en,
-    output logic       valid_out
+module fft_controller #(
+    parameter int N              = 32,
+    localparam int NUM_STAGES    = $clog2(N),
+    localparam int TW_ADDR_WIDTH = (N <= 4) ? 1 : (NUM_STAGES - 1),
+    localparam int PIPELINE_LAT  = N - 1
+)(
+    input  logic                                     clk,
+    input  logic                                     rst_n,
+    input  logic                                     valid_in,
+    output logic [NUM_STAGES-1:0]                    stage_sel,
+    output logic [NUM_STAGES-1:0][TW_ADDR_WIDTH-1:0] stage_tw_addr,
+    output logic                                     core_en,
+    output logic                                     valid_out
 );
 
-    // 5-bit Binary Counter & Flush Counter
-    logic [4:0] cnt;
-    logic [5:0] flush_cnt;
-    logic       flushing;
+    // Sample Counter & Flush Counter
+    logic [NUM_STAGES-1:0] cnt;
+    logic [NUM_STAGES:0]   flush_cnt;
+    logic                  flushing;
 
-    assign flushing = (flush_cnt != 6'd0);
+    assign flushing = (flush_cnt != '0);
     assign core_en  = valid_in || flushing;
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -46,11 +44,11 @@ module fft_controller (
         end else begin
             if (valid_in) begin
                 cnt <= cnt + 1'b1;
-                if (cnt == 5'd31) begin
-                    flush_cnt <= 6'd31;
+                if (cnt == NUM_STAGES'(N - 1)) begin
+                    flush_cnt <= (NUM_STAGES+1)'(N - 1);
                 end
             end else if (flushing) begin
-                if (flush_cnt == 6'd1) begin
+                if (flush_cnt == (NUM_STAGES+1)'(1)) begin
                     cnt       <= '0;
                     flush_cnt <= '0;
                 end else begin
@@ -61,26 +59,26 @@ module fft_controller (
         end
     end
 
-    // Stage 1 (D=16): Controlled by cnt[4], Twiddle Address cnt[3:0] (k=0..15)
-    assign stage1_sel     = cnt[4];
-    assign stage1_tw_addr = cnt[3:0];
+    // Stage Steering & Twiddle Address Generators
+    generate
+        for (genvar s = 0; s < NUM_STAGES; s++) begin : gen_ctrl_stage
+            // Steering selector alternates with period 2 * DELAY_DEPTH
+            assign stage_sel[s] = cnt[NUM_STAGES - 1 - s];
 
-    // Stage 2 (D=8): Controlled by cnt[3], Twiddle Address {cnt[2:0], 1'b0} (k=0,2..14)
-    assign stage2_sel     = cnt[3];
-    assign stage2_tw_addr = {cnt[2:0], 1'b0};
+            if (s < NUM_STAGES - 2) begin : gen_mult_tw
+                // Multiplier stages: cnt[NUM_STAGES - 2 - s : 0] shifted left by s
+                assign stage_tw_addr[s] = (TW_ADDR_WIDTH'(cnt[NUM_STAGES - 2 - s : 0])) << s;
+            end else if (s == NUM_STAGES - 2) begin : gen_trivial_tw
+                // Penultimate stage: W4 trivial twiddle controlled by cnt[0]
+                assign stage_tw_addr[s] = TW_ADDR_WIDTH'(cnt[0]);
+            end else begin : gen_final_tw
+                // Final stage: Multiplier-free wire pass-through
+                assign stage_tw_addr[s] = '0;
+            end
+        end
+    endgenerate
 
-    // Stage 3 (D=4): Controlled by cnt[2], Twiddle Address {cnt[1:0], 2'b0} (k=0,4,8,12)
-    assign stage3_sel     = cnt[2];
-    assign stage3_tw_addr = {cnt[1:0], 2'b0};
-
-    // Stage 4 (D=2): Controlled by cnt[1], Trivial Twiddle Bit cnt[0]
-    assign stage4_sel     = cnt[1];
-    assign stage4_tw_addr = {3'b000, cnt[0]};
-
-    // Stage 5 (D=1): Controlled by cnt[0] (Multiplier-free direct wire pass-through)
-    assign stage5_sel = cnt[0];
-
-    // 31-Cycle Valid Pipeline Shift Register
+    // (N - 1)-Cycle Valid Pipeline Shift Register
     logic [PIPELINE_LAT-1:0] valid_pipe;
 
     always_ff @(posedge clk or negedge rst_n) begin

@@ -1,6 +1,7 @@
 % =========================================================================
-% Parameterized Long-Vector Test Generator for 32-Point DIF R2SDF FFT Core
+% Parameterized Test Vector Generator for Radix-2 DIF R2SDF FFT Cores
 % Generates comprehensive multi-scenario stimulus and golden reference .mem files
+% for arbitrary power-of-2 point sizes (N in 8, 16, 32, 64, 128, ...).
 % =========================================================================
 
 function generate_test_vectors(num_frames, N, B)
@@ -30,8 +31,8 @@ function generate_test_vectors(num_frames, N, B)
 
         % Select scenario based on frame index
         if f <= 16
-            % Scenario 1: Single pure tones (sweeping f0 from 0 to 15)
-            f0 = f - 1;
+            % Scenario 1: Single pure tones (sweeping f0 across bin frequencies)
+            f0 = mod(f - 1, N / 2);
             amp = 0.85;
             phase = (f - 1) * pi / 8;
             sig = amp * exp(1j * (2 * pi * f0 * n / N + phase));
@@ -92,14 +93,19 @@ function generate_test_vectors(num_frames, N, B)
         all_gold_im(idx_range) = imag(X_int_hw);
     end
 
+    % Determine output file paths relative to script location
+    script_dir = fileparts(mfilename('fullpath'));
+    stim_fname = fullfile(script_dir, sprintf('stimulus_%d.mem', N));
+    gold_fname = fullfile(script_dir, sprintf('golden_%d.mem', N));
+
     % Export to .mem files
-    export_mem_file('stimulus_in.mem', all_stim_re, all_stim_im);
-    export_mem_file('golden_out.mem', all_gold_re, all_gold_im);
+    export_mem_file(stim_fname, all_stim_re, all_stim_im);
+    export_mem_file(gold_fname, all_gold_re, all_gold_im);
 
     fprintf('  • Total Frames Generated : %d\n', num_frames);
     fprintf('  • Total Samples Exported : %d\n', total_samples);
-    fprintf('  • Saved Stimulus File    : model/stimulus_in.mem\n');
-    fprintf('  • Saved Golden File      : model/golden_out.mem\n');
+    fprintf('  • Saved Stimulus File    : %s\n', stim_fname);
+    fprintf('  • Saved Golden File      : %s\n', gold_fname);
     fprintf('=================================================================\n');
     fprintf('                 TEST VECTOR GENERATION COMPLETE                 \n');
     fprintf('=================================================================\n');

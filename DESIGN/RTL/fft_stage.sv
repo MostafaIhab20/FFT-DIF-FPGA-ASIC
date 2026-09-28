@@ -2,35 +2,41 @@
 // File Name      : fft_stage.sv
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-09-27
-// Version        : 1.0
+// Version        : 1.1
 // Description    : Parameterized Radix-2 DIF Single-Path Delay Feedback Stage.
 //                  Integrates MUX A (delay feedback), delay line (depth D),
 //                  butterfly processing element, twiddle factor unit (full multiplier,
-//                  trivial swap-and-negate mux for stage 4, or wire pass for stage 5),
+//                  trivial swap-and-negate mux for penultimate stage, or wire pass for final stage),
 //                  and MUX B (output steering).
 // Parameters     :
-//   DELAY_DEPTH    : Delay line length (16, 8, 4, 2, or 1)
-//   HAS_MULTIPLIER : 1 for Stages 1-3, 0 for Stages 4-5
-//   IS_STAGE4      : 1 for Stage 4 (trivial swap & negate for W4^0=1, W4^1=-j)
-//                    When both HAS_MULTIPLIER=0 and IS_STAGE4=0, acts as Stage 5
-//                    (direct wire pass-through, zero multiplier gates).
+//   N                 : FFT Points (e.g. 32, 64)
+//   DELAY_DEPTH       : Delay line length (e.g. N/2, N/4, ..., 2, 1)
+//   TW_ADDR_WIDTH     : Twiddle address width ($clog2(N/2))
+//   HAS_MULTIPLIER    : 1 for full complex multiplier stages, 0 otherwise
+//   IS_STAGE_TRIVIAL  : 1 for penultimate stage (trivial swap & negate for W4^0=1, W4^1=-j)
+//   IS_STAGE4         : Alias for IS_STAGE_TRIVIAL (backward compatibility)
 // =============================================================================
 
-import fft32_pkg::*;
+import fft_pkg::*;
 
 module fft_stage #(
-    parameter int DELAY_DEPTH    = 16,
-    parameter int HAS_MULTIPLIER = 1,
-    parameter int IS_STAGE4      = 0
+    parameter int N                = 32,
+    parameter int DELAY_DEPTH      = 16,
+    parameter int TW_ADDR_WIDTH    = (N <= 4) ? 1 : $clog2(N/2),
+    parameter int HAS_MULTIPLIER   = 1,
+    parameter int IS_STAGE_TRIVIAL = 0,
+    parameter int IS_STAGE4        = IS_STAGE_TRIVIAL
 )(
-    input  logic          clk,
-    input  logic          rst_n,
-    input  logic          en,
-    input  logic          sel,           // 0: Load/Flush (Phase 0), 1: Butterfly (Phase 1)
-    input  logic [3:0]    tw_addr = '0,  // 4-bit Twiddle ROM address (unused in Stage 5)
-    input  wire complex_t stage_in,
-    output complex_t      stage_out
+    input  logic                     clk,
+    input  logic                     rst_n,
+    input  logic                     en,
+    input  logic                     sel,           // 0: Load/Flush (Phase 0), 1: Butterfly (Phase 1)
+    input  logic [TW_ADDR_WIDTH-1:0] tw_addr = '0,  // Twiddle ROM address (unused in final stage)
+    input  wire complex_t            stage_in,
+    output complex_t                 stage_out
 );
+
+    localparam bit TRIVIAL_STAGE = IS_STAGE_TRIVIAL || IS_STAGE4;
 
     // Internal Signals
     complex_t mux_a_out;
@@ -79,7 +85,10 @@ module fft_stage #(
             logic     is_unity;
             logic     is_neg_j;
 
-            twiddle_rom u_tw_rom (
+            twiddle_rom #(
+                .N          (N),
+                .ADDR_WIDTH (TW_ADDR_WIDTH)
+            ) u_tw_rom (
                 .addr     (tw_addr),
                 .twiddle  (tw_val),
                 .is_unity (is_unity),
@@ -96,8 +105,8 @@ module fft_stage #(
                 .is_neg_j (is_neg_j),
                 .y        (tw_out)
             );
-        end else if (IS_STAGE4 == 1) begin : gen_stage4_trivial
-            // Stage 4: W4^0 = 1, W4^1 = -j
+        end else if (TRIVIAL_STAGE) begin : gen_trivial_stage
+            // Penultimate Stage (D=2): W4^0 = 1, W4^1 = -j
             // tw_addr[0] == 0: Y = X
             // tw_addr[0] == 1: Y = (u + jv)*(-j) = v - ju
             logic signed [DATA_WIDTH-1:0] neg_xr;
@@ -105,8 +114,8 @@ module fft_stage #(
 
             assign tw_out.re = (tw_addr[0] == 1'b0) ? delay_out.re : delay_out.im;
             assign tw_out.im = (tw_addr[0] == 1'b0) ? delay_out.im : neg_xr;
-        end else begin : gen_stage5_wire
-            // Stage 5: W2^0 = 1 (Direct wire pass-through, 0 gates)
+        end else begin : gen_wire_stage
+            // Final Stage (D=1): W2^0 = 1 (Direct wire pass-through, 0 gates)
             assign tw_out = delay_out;
         end
     endgenerate

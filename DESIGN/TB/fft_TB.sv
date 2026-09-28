@@ -1,27 +1,33 @@
 // =============================================================================
-// File Name      : fft32_TB.sv
+// File Name      : fft_TB.sv
 // Author         : Mostafa Ihab
-// Creation Date  : 2026-09-27
-// Version        : 1.0
-// Description    : Self-checking multi-frame SystemVerilog testbench for 32-point
-//                  Radix-2 DIF R2SDF pipelined FFT.
+// Creation Date  : 2026-09-28
+// Version        : 2.0
+// Description    : Self-checking multi-frame SystemVerilog testbench for Parameterized
+//                  Radix-2 DIF R2SDF pipelined FFT (supports arbitrary N).
 //                  Features:
-//                    - Parameterized frame count (default: 100 frames = 3,200 samples)
+//                    - Parameterized FFT points (parameter int N = 32)
+//                    - Parameterized frame count (default: 100 frames)
 //                    - 100% duty-cycle continuous streaming injection
 //                    - Automatic pipeline flush verification upon valid_in deassertion
-//                    - Cycle-by-cycle exact bit-comparison against MATLAB golden reference
+//                    - Expected latency check: exactly N - 1 clock cycles
+//                    - Cycle-by-cycle exact bit-comparison against golden reference
 //                    - Comprehensive reporting (latency, max LSB diff, frame progress)
 // =============================================================================
 
 `timescale 1ns / 1ps
 
-module fft32_TB;
+import fft_pkg::*;
+
+module fft_TB #(
+    parameter int N = 32
+);
 
     // Simulation Parameters
     localparam time CLK_PERIOD         = 10ns; // 100 MHz system clock
-    localparam int  N                  = 32;   // 32-Point FFT
-    localparam int  DEFAULT_NUM_FRAMES = 100;  // Default 100 frames
-    localparam int  MAX_SAMPLES        = 16384;
+    localparam int  PIPELINE_LAT       = N - 1;
+    localparam int  DEFAULT_NUM_FRAMES = 100;
+    localparam int  MAX_SAMPLES        = 65536;
 
     // Runtime Parameters
     int num_frames;
@@ -41,9 +47,9 @@ module fft32_TB;
     logic [31:0] stim_mem   [0:MAX_SAMPLES-1];
     logic [31:0] golden_mem [0:MAX_SAMPLES-1];
 
-    // File path strings with configurable plusargs
-    string stim_file   = "model/stimulus_in.mem";
-    string golden_file = "model/golden_out.mem";
+    // File path strings dynamically constructed based on N
+    string stim_file   = $sformatf("../model/stimulus_%0d.mem", N);
+    string golden_file = $sformatf("../model/golden_%0d.mem", N);
 
     // Verification Tracking
     int error_count      = 0;
@@ -54,9 +60,11 @@ module fft32_TB;
     int max_abs_diff_im  = 0;
 
     // ---------------------------------------------------------------------
-    // DUT Instantiation
+    // DUT Instantiation (Parameterized Core)
     // ---------------------------------------------------------------------
-    fft32_top u_dut (
+    fft_top #(
+        .N (N)
+    ) u_dut (
         .clk         (clk),
         .rst_n       (rst_n),
         .valid_in    (valid_in),
@@ -85,12 +93,14 @@ module fft32_TB;
         total_samples = num_frames * N;
 
         $display("\n=========================================================================");
-        $display("   STARTING MULTI-FRAME TESTBENCH: 32-Point Radix-2 DIF R2SDF FFT       ");
+        $display("   STARTING MULTI-FRAME TESTBENCH: %0d-Point Radix-2 DIF R2SDF FFT       ", N);
         $display("=========================================================================");
-        $display("  Target Frames : %0d frames (%0d complex samples)", num_frames, total_samples);
-        $display("  Clock Period  : %0t", CLK_PERIOD);
-        $display("  Stimulus File : %s", stim_file);
-        $display("  Golden File   : %s\n", golden_file);
+        $display("  FFT Points (N)    : %0d", N);
+        $display("  Pipeline Latency  : %0d clock cycles", PIPELINE_LAT);
+        $display("  Target Frames     : %0d frames (%0d complex samples)", num_frames, total_samples);
+        $display("  Clock Period      : %0t", CLK_PERIOD);
+        $display("  Stimulus File     : %s", stim_file);
+        $display("  Golden File       : %s\n", golden_file);
 
         // Load test vectors into memory
         $readmemh(stim_file, stim_mem);
@@ -123,7 +133,7 @@ module fft32_TB;
         in_data_im = '0;
         $display("[%0t] All %0d input samples streamed. Waiting for remaining pipeline flush...", $time, total_samples);
 
-        // Wait until all outputs are received or watchdog triggers
+        // Wait until all outputs are received
         wait(sample_out_cnt == total_samples);
         @(posedge clk);
         #(CLK_PERIOD * 5);
@@ -134,14 +144,15 @@ module fft32_TB;
         $display("\n=========================================================================");
         $display("                         SIMULATION SUMMARY REPORT                       ");
         $display("=========================================================================");
+        $display("  FFT Points (N)       : %0d", N);
         $display("  Total Frames Tested  : %0d", num_frames);
         $display("  Total Samples Tested : %0d", total_samples);
-        $display("  Pipeline Latency     : %0d clock cycles (Expected: 31)", latency_cycles);
+        $display("  Pipeline Latency     : %0d clock cycles (Expected: %0d)", latency_cycles, PIPELINE_LAT);
         $display("  Max Abs Diff (Re)    : %0d LSB", max_abs_diff_re);
         $display("  Max Abs Diff (Im)    : %0d LSB", max_abs_diff_im);
         $display("  Total Error Samples  : %0d", error_count);
         $display("  -----------------------------------------------------------------------");
-        if (error_count == 0 && latency_cycles == 31) begin
+        if (error_count == 0 && latency_cycles == PIPELINE_LAT) begin
             $display("  FINAL VERDICT        : *** ALL %0d FRAMES PASSED (100%% BIT-ACCURATE) ***", num_frames);
         end else begin
             $display("  FINAL VERDICT        : *** SIMULATION FAILED WITH %0d ERRORS ***", error_count);
@@ -202,10 +213,10 @@ module fft32_TB;
             if (diff_im < 0 && -diff_im > max_abs_diff_im) max_abs_diff_im = -diff_im;
             if (diff_im > 0 &&  diff_im > max_abs_diff_im) max_abs_diff_im =  diff_im;
 
-            // Frame 1 detailed table printout
+            // Frame 1 detailed table printout (first N samples)
             if (sample_out_cnt < N) begin
                 if (sample_out_cnt == 0) begin
-                    $display("\n--- Detailed Output Check: Frame 1 (First 32 Samples) ---");
+                    $display("\n--- Detailed Output Check: Frame 1 (First %0d Samples) ---", N);
                     $display("  Bin | Hardware (Re, Im) | Golden (Re, Im)   | Diff (Re, Im) | Status");
                     $display("  ----+-------------------+-------------------+---------------+--------");
                 end
@@ -240,9 +251,9 @@ module fft32_TB;
 
     // Dynamic Timeout Watchdog
     initial begin
-        #(CLK_PERIOD * (MAX_SAMPLES + 2000));
+        #(CLK_PERIOD * (MAX_SAMPLES + 5000));
         $display("\n[FATAL] Simulation TIMEOUT watchdog reached!");
         $finish;
     end
 
-endmodule : fft32_TB
+endmodule : fft_TB

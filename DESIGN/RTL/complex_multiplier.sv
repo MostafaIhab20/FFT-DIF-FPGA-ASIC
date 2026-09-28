@@ -10,7 +10,7 @@
 //                  to completely eliminate dynamic switching activity when trivial.
 // =============================================================================
 
-import fft32_pkg::*;
+import fft_pkg::*;
 
 module complex_multiplier #(
     parameter int MULT_PIPE_STAGES = 0
