@@ -1,0 +1,81 @@
+# ==============================================================================
+# Git Ignore Configuration for 32-Point R2SDF FFT (RTL-to-GDS & FPGA)
+# Author: Mostafa Ihab
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. QuestaSim / ModelSim Artifacts
+# ------------------------------------------------------------------------------
+Questa_SIM/work/
+Questa_SIM/transcript
+Questa_SIM/sim.log
+Questa_SIM/compile.log
+Questa_SIM/vsim.wlf
+Questa_SIM/*.wlf
+Questa_SIM/*.vstf
+Questa_SIM/*.qdb
+Questa_SIM/*.qpg
+Questa_SIM/*.qtl
+Questa_SIM/modelsim.ini
+covhtmlreport/
+*.ucdb
+
+# ------------------------------------------------------------------------------
+# 2. Xilinx / AMD Vivado Artifacts
+# ------------------------------------------------------------------------------
+.Xil/
+*.jou
+*.log
+*.str
+*.runs/
+*.cache/
+*.hw/
+*.ip_user_files/
+usage_statistics_webtalk.*
+clockInfo.txt
+vivado*.tar.gz
+*.dcp
+
+# ------------------------------------------------------------------------------
+# 3. ASIC EDA Tools (Synopsys, Cadence, OpenLane / OpenROAD)
+# ------------------------------------------------------------------------------
+# Synopsys Design Compiler / ICC2
+alib-*/
+*.syn
+*.mr
+*.pvl
+command.log
+default.svf
+
+# Cadence Genus / Innovus
+genus.log*
+genus.cmd*
+innovus.log*
+innovus.cmd*
+
+# OpenLane / OpenROAD runs
+runs/
+*.def
+*.lef
+*.gds.gz
+
+# ------------------------------------------------------------------------------
+# 4. MATLAB & Python Temporary Files
+# ------------------------------------------------------------------------------
+*.asv
+*.m~
+__pycache__/
+*.py[cod]
+*$py.class
+*.png_tmp
+
+# ------------------------------------------------------------------------------
+# 5. OS & Editor Junk
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/

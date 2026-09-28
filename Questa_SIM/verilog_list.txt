@@ -1,0 +1,11 @@
+../DESIGN/RTL/fft32_pkg.sv
+../DESIGN/RTL/adder_subtractor_bk.sv
+../DESIGN/RTL/booth_radix4_multiplier.sv
+../DESIGN/RTL/delay_feedback_line.sv
+../DESIGN/RTL/butterfly_radix2.sv
+../DESIGN/RTL/twiddle_rom.sv
+../DESIGN/RTL/complex_multiplier.sv
+../DESIGN/RTL/fft_stage.sv
+../DESIGN/RTL/fft_controller.sv
+../DESIGN/RTL/fft32_top.sv
+../DESIGN/TB/fft32_TB.sv
