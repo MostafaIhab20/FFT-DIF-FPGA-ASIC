@@ -14,10 +14,9 @@
 import argparse
 import math
 import os
-import sys
 from datetime import date
 
-def generate_twiddle_rom(n_points, author="Mostafa Ihab", sv_out_path="DESIGN/RTL/twiddle_rom.sv"):
+def generate_twiddle_rom(n_points, author="Mostafa Ihab", sv_out_path="twiddle_rom.sv"):
     if n_points < 4 or (n_points & (n_points - 1)) != 0:
         raise ValueError(f"FFT points N must be a power of 2 >= 4, got {n_points}")
 
@@ -130,7 +129,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate clean Twiddle ROM for Parameterized R2SDF FFT cores.")
     parser.add_argument("-N", "--points", type=int, default=32, help="FFT points (power of 2, default: 32)")
     parser.add_argument("--author", type=str, default="Mostafa Ihab", help="Author name for header")
-    parser.add_argument("--sv-out", type=str, default="DESIGN/RTL/twiddle_rom.sv", help="Output SystemVerilog path")
+    parser.add_argument("--sv-out", type=str, default="twiddle_rom.sv", help="Output SystemVerilog path")
 
     args = parser.parse_args()
     generate_twiddle_rom(n_points=args.points, author=args.author, sv_out_path=args.sv_out)
