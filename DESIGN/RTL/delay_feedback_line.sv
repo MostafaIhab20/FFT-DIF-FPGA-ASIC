@@ -22,7 +22,7 @@ module delay_feedback_line #(
 );
 
     generate
-        if (DEPTH == 1) begin : gen_single_reg
+        if (DEPTH == 1) begin : gen_single_FF
             complex_t reg_data;
 
             always_ff @(posedge clk or negedge rst_n) begin
@@ -35,24 +35,24 @@ module delay_feedback_line #(
             end
 
             assign dout = reg_data;
-        end else begin : gen_shift_reg
-            complex_t shift_reg [0:DEPTH-1];
+        end else begin : gen_shift_FF
+            complex_t shift_FF [0:DEPTH-1];
 
             always_ff @(posedge clk or negedge rst_n) begin
                 if (!rst_n) begin
                     for (int i = 0; i < DEPTH; i++) begin
-                        shift_reg[i].re <= '0;
-                        shift_reg[i].im <= '0;
+                        shift_FF[i].re <= '0;
+                        shift_FF[i].im <= '0;
                     end
                 end else if (en) begin
-                    shift_reg[0] <= din;
+                    shift_FF[0] <= din;
                     for (int i = 1; i < DEPTH; i++) begin
-                        shift_reg[i] <= shift_reg[i-1];
+                        shift_FF[i] <= shift_FF[i-1];
                     end
                 end
             end
 
-            assign dout = shift_reg[DEPTH-1];
+            assign dout = shift_FF[DEPTH-1];
         end
     endgenerate
 

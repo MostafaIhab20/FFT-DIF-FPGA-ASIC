@@ -35,6 +35,10 @@ usage_statistics_webtalk.*
 clockInfo.txt
 vivado*.tar.gz
 *.dcp
+*.rpt
+*.sdf
+*output*
+*build*
 
 # ------------------------------------------------------------------------------
 # 3. ASIC EDA Tools (Synopsys, Cadence, OpenLane / OpenROAD)

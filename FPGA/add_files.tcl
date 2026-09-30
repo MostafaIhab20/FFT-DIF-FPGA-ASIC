@@ -1,6 +1,10 @@
 # =============================================================================
-# Vivado Synthesis File Loader Script for Parameterized DIF R2SDF FFT Core
-# Usage in Vivado Tcl Console: source add_files.tcl
+# File Name      : add_files.tcl
+# Author         : Mostafa Ihab
+# Creation Date  : 2026-09-28
+# Version        : 1.0
+# Description    : Vivado synthesis file loader script for Parameterized
+#                  Radix-2 DIF R2SDF FFT core.
 # =============================================================================
 
 set script_dir [file normalize [file dirname [info script]]]

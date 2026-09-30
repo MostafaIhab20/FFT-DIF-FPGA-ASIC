@@ -2,7 +2,7 @@
 // File Name      : fft_pkg.sv
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-09-28
-// Version        : 1.1
+// Version        : 1.0
 // Description    : Global SystemVerilog package defining architectural types,
 //                  Q1.15 fixed-point complex data type, saturation boundaries,
 //                  and FPGA/ASIC hardware target switches for parameterized FFT.

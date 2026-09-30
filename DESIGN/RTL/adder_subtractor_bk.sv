@@ -31,19 +31,31 @@ module adder_subtractor_bk #(
     localparam int N = (WIDTH > 1) ? (1 << $clog2(WIDTH)) : 2;
     localparam int L = $clog2(N);
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // Internal Signal Declarations
+    // =========================================================================
+    // Pre-processing Extended Operands & Initial Generate/Propagate
+    logic [N-1:0]     a_ext;
+    logic [N-1:0]     b_ext;
+    logic [N-1:0]     p_orig;
+    logic [N-1:0]     g_init;
+    logic [N-1:0]     p_init;
+
+    // Up-Tree Prefix Network Arrays (Forward Reduction)
+    logic [N-1:0]     g_up [0:L];
+    logic [N-1:0]     p_up [0:L];
+
+    // Down-Tree Prefix Network Arrays (Reverse Distribution)
+    logic [N-1:0]     g_down [0:L];
+    logic [N-1:0]     p_down [0:L];
+
+    // Final Prefix Carries and Bit Carry Vector
+    logic [N-1:0]     g_final;
+    logic [WIDTH-1:0] c_in_bit;
+
+    // =========================================================================
     // 1. Pre-Processing Phase: Generate (G) and Propagate (P)
-    // -------------------------------------------------------------------------
-    logic [N-1:0] a_ext;
-    logic [N-1:0] b_ext;
-    logic [N-1:0] p_orig;
-
-    // Bit-0 absorbs the carry-in (sub) directly:
-    //   g_init[0] = (a0 & b0') | ((a0 ^ b0') & cin)  --> Exact carry into bit 1!
-    //   p_init[0] = 0                                --> Absorbed, prevents further propagation
-    logic [N-1:0] g_init;
-    logic [N-1:0] p_init;
-
+    // =========================================================================
     always_comb begin
         a_ext  = '0;
         b_ext  = '0;
@@ -66,12 +78,9 @@ module adder_subtractor_bk #(
         end
     end
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
     // 2. Brent-Kung Forward Reduction Tree (Up-Tree: L levels)
-    // -------------------------------------------------------------------------
-    logic [N-1:0] g_up [0:L];
-    logic [N-1:0] p_up [0:L];
-
+    // =========================================================================
     assign g_up[0] = g_init;
     assign p_up[0] = p_init;
 
@@ -92,12 +101,9 @@ module adder_subtractor_bk #(
         end
     endgenerate
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
     // 3. Brent-Kung Reverse Distribution Tree (Down-Tree: L-1 levels)
-    // -------------------------------------------------------------------------
-    logic [N-1:0] g_down [0:L];
-    logic [N-1:0] p_down [0:L];
-
+    // =========================================================================
     assign g_down[0] = g_up[L];
     assign p_down[0] = p_up[L];
 
@@ -125,14 +131,11 @@ module adder_subtractor_bk #(
     endgenerate
 
     // Final prefix generate signals (carries)
-    logic [N-1:0] g_final;
     assign g_final = (L <= 1) ? g_down[1] : g_down[L-1];
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
     // 4. Post-Processing Phase: Sum, Carry-Out, and Overflow
-    // -------------------------------------------------------------------------
-    logic [WIDTH-1:0] c_in_bit;
-
+    // =========================================================================
     always_comb begin
         c_in_bit[0] = sub;
         for (int i = 1; i < WIDTH; i++) begin

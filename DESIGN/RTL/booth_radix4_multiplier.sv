@@ -88,13 +88,32 @@ module booth_radix4_multiplier #(
     output logic signed [31:0] p  // Product: a * b
 );
 
-    // -------------------------------------------------------------------------
-    // Phase 1: Radix-4 Booth Partial Product Generation
-    // -------------------------------------------------------------------------
-    logic [16:0] b_ext;
-    assign b_ext = {b, 1'b0};
-
+    // =========================================================================
+    // Internal Signal Declarations
+    // =========================================================================
+    // Multiplier Extension & Partial Products
+    logic [16:0]        b_ext;
     logic signed [31:0] pp [0:7];
+
+    // Level 1 Reduction Signals
+    logic [31:0]        s_a, c_a;
+    logic [31:0]        s_b, c_b;
+    logic [31:0]        s_a_pipe, c_a_pipe;
+    logic [31:0]        s_b_pipe, c_b_pipe;
+
+    // Level 2 Reduction Signals
+    logic [31:0]        s_final, c_final;
+    logic [31:0]        s_fin_pipe, c_fin_pipe;
+
+    // Final Vector Addition Signals
+    logic [31:0]        bk_sum;
+    logic               bk_cout;
+    logic               bk_ovf;
+
+    // =========================================================================
+    // Phase 1: Radix-4 Booth Partial Product Generation
+    // =========================================================================
+    assign b_ext = {b, 1'b0};
 
     always_comb begin
         for (int i = 0; i < 8; i++) begin
@@ -116,12 +135,9 @@ module booth_radix4_multiplier #(
         end
     end
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
     // Phase 2: Level 1 Reduction (8 rows -> 4 rows)
-    // -------------------------------------------------------------------------
-    logic [31:0] s_a, c_a;
-    logic [31:0] s_b, c_b;
-
+    // =========================================================================
     compressor4_2_array #(.WIDTH(32)) u_comp_tree_l1_a (
         .x0    (pp[0]),
         .x1    (pp[1]),
@@ -141,9 +157,6 @@ module booth_radix4_multiplier #(
     );
 
     // Optional Pipeline Stage 1 (after Level 1 Reduction)
-    logic [31:0] s_a_pipe, c_a_pipe;
-    logic [31:0] s_b_pipe, c_b_pipe;
-
     generate
         if (PIPELINE_STAGES == 2) begin : gen_pipe_l1
             always_ff @(posedge clk or negedge rst_n) begin
@@ -167,11 +180,9 @@ module booth_radix4_multiplier #(
         end
     endgenerate
 
-    // -------------------------------------------------------------------------
-    // Phase 2: Level 2 Reduction (4 rows -> 2 rows)
-    // -------------------------------------------------------------------------
-    logic [31:0] s_final, c_final;
-
+    // =========================================================================
+    // Phase 3: Level 2 Reduction (4 rows -> 2 rows)
+    // =========================================================================
     compressor4_2_array #(.WIDTH(32)) u_comp_tree_l2 (
         .x0    (s_a_pipe),
         .x1    ({c_a_pipe[30:0], 1'b0}),
@@ -182,8 +193,6 @@ module booth_radix4_multiplier #(
     );
 
     // Optional Pipeline Stage 2 (after Level 2 Reduction)
-    logic [31:0] s_fin_pipe, c_fin_pipe;
-
     generate
         if (PIPELINE_STAGES >= 1) begin : gen_pipe_l2
             always_ff @(posedge clk or negedge rst_n) begin
@@ -201,13 +210,9 @@ module booth_radix4_multiplier #(
         end
     endgenerate
 
-    // -------------------------------------------------------------------------
-    // Phase 3: Final Vector Addition using Brent-Kung Adder
-    // -------------------------------------------------------------------------
-    logic [31:0] bk_sum;
-    logic        bk_cout;
-    logic        bk_ovf;
-
+    // =========================================================================
+    // Phase 4: Final Vector Addition using Brent-Kung Adder
+    // =========================================================================
     adder_subtractor_bk #(.WIDTH(32)) u_final_adder (
         .a        (s_fin_pipe),
         .b        ({c_fin_pipe[30:0], 1'b0}),
