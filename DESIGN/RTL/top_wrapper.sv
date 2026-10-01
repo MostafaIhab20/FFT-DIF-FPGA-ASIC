@@ -84,7 +84,6 @@ module top_wrapper #(
     logic                req_soft;
     logic                req_flush_in;
     logic                req_flush_out;
-    logic                busy_h;
     logic                ip_busy_h;
     logic                rst_active;
 
@@ -107,10 +106,10 @@ module top_wrapper #(
     logic [31:0]         out_wdata_i;
 
     // IP Core Control and Raw Output (ip_clk Domain)
-    logic                ip_ce;
-    logic                ip_vin;
+    logic                fft_ce;
+    logic                fft_valid_in;
     logic [31:0]         ip_din;
-    logic                fft_vout;
+    logic                fft_valid_out;
     logic signed [15:0]  fft_out_re;
     logic signed [15:0]  fft_out_im;
     logic [31:0]         fft_dout;
@@ -123,7 +122,7 @@ module top_wrapper #(
     logic                frame_done_h;
 
     // =========================================================================
-    // 1. AHB-Lite Slave Protocol Handler
+    // AHB-Lite Slave
     // =========================================================================
     ahb_slave #(
         .ADDR_W (ADDR_W)
@@ -150,7 +149,7 @@ module top_wrapper #(
     );
 
     // =========================================================================
-    // 2. Address Decoder: Demultiplexes Register File vs FIFO Window
+    // Address Decoder
     // =========================================================================
     addr_decoder #(
         .ADDR_W (ADDR_W)
@@ -172,9 +171,48 @@ module top_wrapper #(
         .out_rdata (out_rdata),
         .out_empty (out_empty)
     );
+    // =========================================================================
+    // System Controller 
+    // =========================================================================
+    fft_sys_ctrl #(
+        .DATA_W (32)
+    ) u_ctrl (
+        .clk          (ip_clk),
+        .rst_n        (ip_rst_n_i),
+        .enable       (enable),
+        .in_empty     (in_empty_i),
+        .in_rdata     (in_rdata_i),
+        .in_pop       (in_pop_i),
+        .out_full     (out_full_i),
+        .out_push     (out_push_i),
+        .out_wdata    (out_wdata_i),
+        .ip_ce        (fft_ce),
+        .ip_valid_in  (fft_valid_in),
+        .ip_data_in   (ip_din),
+        .ip_valid_out (ip_vout),
+        .ip_data_out  (ip_dout),
+        .busy         (ip_busy_i)
+    );
 
     // =========================================================================
-    // 3. Register File: Control, Status, Thresholds, DMA, & Interrupts
+    // Reset Controller (HCLK Domain)
+    // =========================================================================
+    rst_ctrl #(
+        .HOLD (HOLD_CYCLES)
+    ) u_rst (
+        .clk           (HCLK),
+        .rst_n         (HRESETn),
+        .req_soft      (req_soft),
+        .req_flush_in  (req_flush_in),
+        .req_flush_out (req_flush_out),
+        .in_rst_n      (in_rst_n_h),
+        .out_rst_n     (out_rst_n_h),
+        .ip_rst_n      (ip_rst_n_h),
+        .active        (rst_active)
+    );
+
+    // =========================================================================
+    // Register File
     // =========================================================================
     reg_file #(
         .ID        (IP_ID),
@@ -189,7 +227,8 @@ module top_wrapper #(
         .reg_wr_en        (reg_wr_en),
         .reg_wdata        (reg_wdata),
         .reg_rdata        (reg_rdata),
-        .busy             (busy_h),
+        .rst_active       (rst_active),
+        .ip_busy          (ip_busy_h),
         .in_full          (in_full),
         .out_empty        (out_empty),
         .in_level         (LVL_W'(in_wlevel)),
@@ -207,98 +246,52 @@ module top_wrapper #(
     );
 
     // =========================================================================
-    // 4. Reset Controller (HCLK Domain)
+    // Asynchronous FIFOs
     // =========================================================================
-    rst_ctrl #(
-        .HOLD (HOLD_CYCLES)
-    ) u_rst (
-        .clk           (HCLK),
-        .rst_n         (HRESETn),
-        .req_soft      (req_soft),
-        .req_flush_in  (req_flush_in),
-        .req_flush_out (req_flush_out),
-        .in_rst_n      (in_rst_n_h),
-        .out_rst_n     (out_rst_n_h),
-        .ip_rst_n      (ip_rst_n_h),
-        .active        (rst_active)
-    );
+        // =========================================================================
+        // Input FIFO (SoC >> IP Slave)
+        // =========================================================================
+        async_fifo #(
+            .DATA_W (32),
+            .ADDR_W (IN_ADDR_W)
+        ) u_in_fifo (
+            .wclk   (HCLK),
+            .wrst_n (in_rst_n_h),
+            .winc   (in_push),
+            .wdata  (in_wdata),
+            .wfull  (in_full),
+            .wlevel (in_wlevel),
+            .rclk   (ip_clk),
+            .rrst_n (in_rst_n_i),
+            .rinc   (in_pop_i),
+            .rdata  (in_rdata_i),
+            .rempty (in_empty_i),
+            .rlevel ()
+        );
 
-    // Overall Host Busy Flag: Reset active, IN FIFO non-empty, or IP core busy
-    assign busy_h = rst_active | (in_wlevel != '0) | ip_busy_h;
-
-    // =========================================================================
-    // 5. Asynchronous Reset Synchronizers (Crossing HCLK -> ip_clk Domain)
-    // =========================================================================
-    reset_sync u_rs_in  (.clk(ip_clk), .arst_n(in_rst_n_h),  .srst_n(in_rst_n_i));
-    reset_sync u_rs_out (.clk(ip_clk), .arst_n(out_rst_n_h), .srst_n(out_rst_n_i));
-    reset_sync u_rs_ip  (.clk(ip_clk), .arst_n(ip_rst_n_h),  .srst_n(ip_rst_n_i));
-
-    // =========================================================================
-    // 6. Dual-Clock Asynchronous FIFOs
-    // =========================================================================
-    // IN FIFO: Host writes on HCLK, IP reads on ip_clk
-    async_fifo #(
-        .DATA_W (32),
-        .ADDR_W (IN_ADDR_W)
-    ) u_in_fifo (
-        .wclk   (HCLK),
-        .wrst_n (in_rst_n_h),
-        .winc   (in_push),
-        .wdata  (in_wdata),
-        .wfull  (in_full),
-        .wlevel (in_wlevel),
-        .rclk   (ip_clk),
-        .rrst_n (in_rst_n_i),
-        .rinc   (in_pop_i),
-        .rdata  (in_rdata_i),
-        .rempty (in_empty_i),
-        .rlevel ()
-    );
-
-    // OUT FIFO: IP writes on ip_clk, Host reads on HCLK
-    async_fifo #(
-        .DATA_W (32),
-        .ADDR_W (OUT_ADDR_W)
-    ) u_out_fifo (
-        .wclk   (ip_clk),
-        .wrst_n (out_rst_n_i),
-        .winc   (out_push_i),
-        .wdata  (out_wdata_i),
-        .wfull  (out_full_i),
-        .wlevel (),
-        .rclk   (HCLK),
-        .rrst_n (out_rst_n_h),
-        .rinc   (out_pop),
-        .rdata  (out_rdata),
-        .rempty (out_empty),
-        .rlevel (out_rlevel)
-    );
+        // =========================================================================
+        // Output FIFO (IP Slave >> SoC)
+        // =========================================================================
+        async_fifo #(
+            .DATA_W (32),
+            .ADDR_W (OUT_ADDR_W)
+        ) u_out_fifo (
+            .wclk   (ip_clk),
+            .wrst_n (out_rst_n_i),
+            .winc   (out_push_i),
+            .wdata  (out_wdata_i),
+            .wfull  (out_full_i),
+            .wlevel (),
+            .rclk   (HCLK),
+            .rrst_n (out_rst_n_h),
+            .rinc   (out_pop),
+            .rdata  (out_rdata),
+            .rempty (out_empty),
+            .rlevel (out_rlevel)
+        );
 
     // =========================================================================
-    // 7. IP Stream Controller (ip_clk Domain)
-    // =========================================================================
-    ip_ctrl #(
-        .DATA_W (32)
-    ) u_ctrl (
-        .clk          (ip_clk),
-        .rst_n        (ip_rst_n_i),
-        .enable       (enable),
-        .in_empty     (in_empty_i),
-        .in_rdata     (in_rdata_i),
-        .in_pop       (in_pop_i),
-        .out_full     (out_full_i),
-        .out_push     (out_push_i),
-        .out_wdata    (out_wdata_i),
-        .ip_ce        (ip_ce),
-        .ip_valid_in  (ip_vin),
-        .ip_data_in   (ip_din),
-        .ip_valid_out (ip_vout),
-        .ip_data_out  (ip_dout),
-        .busy         (ip_busy_i)
-    );
-
-    // =========================================================================
-    // 8. Parameterized Radix-2 DIF R2SDF FFT Core Integration
+    // N FFT Core 
     // =========================================================================
     fft_top #(
         .N                (FFT_N),
@@ -306,11 +299,11 @@ module top_wrapper #(
     ) u_fft_core (
         .clk         (ip_clk),
         .rst_n       (ip_rst_n_i),
-        .clk_en      (ip_ce),
-        .valid_in    (ip_vin),
+        .clk_en      (fft_ce),
+        .valid_in    (fft_valid_in),
         .in_data_re  (signed'(ip_din[31:16])),
         .in_data_im  (signed'(ip_din[15:0])),
-        .valid_out   (fft_vout),
+        .valid_out   (fft_valid_out),
         .out_data_re (fft_out_re),
         .out_data_im (fft_out_im)
     );
@@ -318,7 +311,7 @@ module top_wrapper #(
     assign fft_dout = {fft_out_re, fft_out_im};
 
     // =========================================================================
-    // 9. Output Bit-Reversal / Natural-Order Ping-Pong Reorder Buffer
+    // Output Bit-Reversal / Natural-Order 
     // =========================================================================
     fft_reorder_buffer #(
         .DATA_W (32),
@@ -327,8 +320,8 @@ module top_wrapper #(
     ) u_reorder_buf (
         .clk        (ip_clk),
         .rst_n      (ip_rst_n_i),
-        .clk_en     (ip_ce),
-        .valid_in   (fft_vout),
+        .clk_en     (fft_ce),
+        .valid_in   (fft_valid_out),
         .data_in    (fft_dout),
         .valid_out  (ip_vout),
         .data_out   (ip_dout),
@@ -336,29 +329,40 @@ module top_wrapper #(
     );
 
     // =========================================================================
-    // 10. Frame-Done Event Synchronizer (ip_clk -> HCLK Domain)
+    // Synchronizers
     // =========================================================================
-    pulse_sync #(
-        .SYNC_STAGES (2)
-    ) u_frame_sync (
-        .src_clk   (ip_clk),
-        .src_rst_n (ip_rst_n_i),
-        .src_pulse (frame_done_i),
-        .dst_clk   (HCLK),
-        .dst_rst_n (HRESETn),
-        .dst_pulse (frame_done_h)
-    );
+        // =========================================================================
+        // Asynchronous Reset Synchronizers (HCLK -> ip_clk Domain)
+        // =========================================================================
+        reset_sync u_rs_in  (.clk(ip_clk), .arst_n(in_rst_n_h),  .srst_n(in_rst_n_i));
+        reset_sync u_rs_out (.clk(ip_clk), .arst_n(out_rst_n_h), .srst_n(out_rst_n_i));
+        reset_sync u_rs_ip  (.clk(ip_clk), .arst_n(ip_rst_n_h),  .srst_n(ip_rst_n_i));
 
-    // =========================================================================
-    // 11. Status Synchronization (ip_clk -> HCLK Domain)
-    // =========================================================================
-    bit_sync #(
-        .WIDTH (1)
-    ) u_busy_sync (
-        .clk   (HCLK),
-        .rst_n (HRESETn),
-        .d     (ip_busy_i),
-        .q     (ip_busy_h)
-    );
+        // =========================================================================
+        // Frame-Done Synchronizer (ip_clk -> HCLK Domain)
+        // =========================================================================
+        pulse_sync #(
+            .SYNC_STAGES (2)
+        ) u_frame_sync (
+            .src_clk   (ip_clk),
+            .src_rst_n (ip_rst_n_i),
+            .src_pulse (frame_done_i),
+            .dst_clk   (HCLK),
+            .dst_rst_n (HRESETn),
+            .dst_pulse (frame_done_h)
+        );
+
+        // =========================================================================
+        // Status Synchronization (ip_clk -> HCLK Domain)
+        // =========================================================================
+        bit_sync #(
+            .WIDTH (1)
+        ) u_busy_sync (
+            .clk   (HCLK),
+            .rst_n (HRESETn),
+            .d     (ip_busy_i),
+            .q     (ip_busy_h)
+        );
+        
 
 endmodule : top_wrapper

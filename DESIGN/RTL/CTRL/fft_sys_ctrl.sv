@@ -1,5 +1,5 @@
 // =============================================================================
-// File Name      : ip_ctrl.sv
+// File Name      : fft_sys_ctrl.sv
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-01
 // Version        : 1.0
@@ -8,7 +8,7 @@
 //                  Includes in-flight sample counter and backpressure handling.
 // =============================================================================
 
-module ip_ctrl #(
+module fft_sys_ctrl #(
     parameter int DATA_W = 32,
     parameter int CNT_W  = 16
 )(
@@ -86,4 +86,4 @@ module ip_ctrl #(
     // Core is busy if any samples remain in flight within the pipeline
     assign busy = (inflight != '0);
 
-endmodule : ip_ctrl
+endmodule : fft_sys_ctrl

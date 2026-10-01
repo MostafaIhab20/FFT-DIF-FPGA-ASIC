@@ -1,52 +1,102 @@
-# =========================================================================
-# QuestaSim Master Simulation Script for Parameterized DIF R2SDF FFT Core
+# =============================================================================
+# File Name      : run.do
+# Author         : Mostafa Ihab
+# Creation Date  : 2026-10-01
+# Version        : 1.0
+# Description    : Master QuestaSim simulation script for the AHB-Lite FFT Subsystem
+#                  and its submodules. Compiles the design and launches the target
+#                  testbench with dedicated waveform setup.
 # Usage:
-#   do run.do         (Defaults to N=32, MULT_PIPE_STAGES=0)
-#   do run.do 32 0    (Runs 32-point FFT with 0 mult pipeline stages)
-#   do run.do 32 1    (Runs 32-point FFT with 1 mult pipeline stage)
-#   do run.do <N> <P> (Runs N-point FFT with P mult pipeline stages)
-# =========================================================================
+#   do run.do             (Runs top_wrapper system testbench: tb_top)
+#   do run.do top         (Runs top_wrapper system testbench: tb_top)
+#   do run.do slave       (Runs AHB-Lite slave testbench: tb_ahb_slave)
+#   do run.do fifo        (Runs asynchronous FIFO testbench: tb_async_fifo)
+#   do run.do fft [N] [P] (Runs FFT core testbench: fft_TB, default N=32, P=0)
+# =============================================================================
 
-# 1. Close any running simulation and clean old libraries/logs
+# 1. Close active simulation and clean previous run artifacts
 catch {quit -sim}
-if [file exists work] {
-    file delete -force work
-}
+
 if [file exists sim.log] {
     file delete -force sim.log
 }
 
-# 2. Determine target N and MULT_PIPE_STAGES
-set N 32
+# 2. Parse target testbench from argument 1 (defaults to "top")
+set TARGET "top"
 if {$argc > 0} {
-    set N $1
-}
-set MULT_PIPE_STAGES 0
-if {$argc > 1} {
-    set MULT_PIPE_STAGES $2
+    set TARGET [string tolower $1]
 }
 
-# 3. Create library and map work
-vlib work   
+# 3. Create clean work library
+if [file exists work] {
+    file delete -force work
+}
+vlib work
 vmap work work
 
-# 4. Enable transcript logging to sim.log
+# 4. Enable transcript logging
 transcript on
 transcript file sim.log
 
-# 5. Compile all SystemVerilog files using file lists
-vlog -sv -work work -f incdir_list.txt -f verilog_list.txt
+# 5. Compile all design and testbench files
+if {[file exists incdir_list.txt] && [file size incdir_list.txt] > 0} {
+    vlog -sv -work work -f incdir_list.txt -f verilog_list.txt
+} else {
+    vlog -sv -work work -f verilog_list.txt
+}
 
-# 6. Start simulation with parameterized N and MULT_PIPE_STAGES
-vsim -voptargs=+acc -gN=$N -gMULT_PIPE_STAGES=$MULT_PIPE_STAGES work.fft_TB
+# 6. Configure simulation targets and generics
+set VSIM_FLAGS "-voptargs=+acc"
 
-# 7. Run simulation (batch exits cleanly, GUI opens waveforms)
+switch -- $TARGET {
+    "top" {
+        set TOP_MODULE "work.tb_top"
+        set WAVE_FILE  "waves/wave_top.do"
+        set SIM_CMD    "vsim $VSIM_FLAGS $TOP_MODULE"
+    }
+    "slave" {
+        set TOP_MODULE "work.tb_ahb_slave"
+        set WAVE_FILE  "waves/wave_slave.do"
+        set SIM_CMD    "vsim $VSIM_FLAGS $TOP_MODULE"
+    }
+    "fifo" {
+        set TOP_MODULE "work.tb_async_fifo"
+        set WAVE_FILE  "waves/wave_fifo.do"
+        set SIM_CMD    "vsim $VSIM_FLAGS $TOP_MODULE"
+    }
+    "fft" {
+        set N 32
+        if {$argc > 1} {
+            set N $2
+        }
+        set MULT_PIPE_STAGES 0
+        if {$argc > 2} {
+            set MULT_PIPE_STAGES $3
+        }
+        set TOP_MODULE "work.fft_TB"
+        set WAVE_FILE  "waves/wave_fft.do"
+        set SIM_CMD    "vsim $VSIM_FLAGS -gN=$N -gMULT_PIPE_STAGES=$MULT_PIPE_STAGES $TOP_MODULE"
+    }
+    default {
+        echo "\[ERROR\] Unknown simulation target: $TARGET"
+        echo "Valid targets: top, slave, fifo, fft"
+        return
+    }
+}
+
+# 7. Launch simulation
+eval $SIM_CMD
+
+# 8. Load waveforms and run simulation
 if {[batch_mode]} {
     run -all
     quit -f
 } else {
-    if [file exists wave.do] {
-        do wave.do
+    if [file exists $WAVE_FILE] {
+        do $WAVE_FILE
+    } else {
+        add wave -r /*
     }
     run -all
+    wave zoom full
 }
