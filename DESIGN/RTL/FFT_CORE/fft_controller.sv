@@ -26,6 +26,7 @@ module fft_controller #(
 )(
     input  logic                                     clk,
     input  logic                                     rst_n,
+    input  logic                                     clk_en,
     input  logic                                     valid_in,
     output logic [NUM_STAGES-1:0]                    stage_sel,
     output logic [NUM_STAGES-1:0][TW_ADDR_WIDTH-1:0] stage_tw_addr,
@@ -52,13 +53,13 @@ module fft_controller #(
     // 1. Core Enable & Flush Logic
     // =========================================================================
     assign flushing = (flush_cnt != '0);
-    assign core_en  = valid_in || flushing;
+    assign core_en  = clk_en && (valid_in || flushing);
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             cnt       <= '0;
             flush_cnt <= '0;
-        end else begin
+        end else if (clk_en) begin
             if (valid_in) begin
                 cnt <= cnt + 1'b1;
                 if (cnt == NUM_STAGES'(N - 1)) begin

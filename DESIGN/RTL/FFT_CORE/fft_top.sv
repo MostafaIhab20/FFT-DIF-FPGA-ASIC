@@ -25,6 +25,7 @@ module fft_top #(
 )(
     input  logic                            clk,
     input  logic                            rst_n,
+    input  logic                            clk_en,
     input  logic                            valid_in,
     input  logic signed [DATA_WIDTH-1:0]    in_data_re,
     input  logic signed [DATA_WIDTH-1:0]    in_data_im,
@@ -62,7 +63,7 @@ module fft_top #(
             in_FF.re    <= '0;
             in_FF.im    <= '0;
             valid_in_FF <= 1'b0;
-        end else begin
+        end else if (clk_en) begin
             valid_in_FF <= valid_in;
             if (valid_in) begin
                 in_FF.re <= in_data_re;
@@ -86,6 +87,7 @@ module fft_top #(
     ) u_controller (
         .clk           (clk),
         .rst_n         (rst_n),
+        .clk_en        (clk_en),
         .valid_in      (valid_in_FF),
         .stage_sel     (stage_sel),
         .stage_tw_addr (stage_tw_addr),

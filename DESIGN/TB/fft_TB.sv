@@ -46,6 +46,7 @@ module fft_TB #(
     // Device Under Test (DUT) Interface Signals
     logic               clk;
     logic               rst_n;
+    logic               clk_en;
     logic               valid_in;
     logic signed [15:0] in_data_re;
     logic signed [15:0] in_data_im;
@@ -90,6 +91,7 @@ module fft_TB #(
     ) u_dut (
         .clk         (clk),
         .rst_n       (rst_n),
+        .clk_en      (clk_en),
         .valid_in    (valid_in),
         .in_data_re  (in_data_re),
         .in_data_im  (in_data_im),
@@ -131,6 +133,7 @@ module fft_TB #(
         $readmemh(golden_file, golden_mem);
 
         // Initialize DUT Inputs
+        clk_en     = 1'b1;
         valid_in   = 1'b0;
         in_data_re = '0;
         in_data_im = '0;
