@@ -129,7 +129,7 @@ module tb_async_fifo;
     // =========================================================================
     // Concurrent Stress Stimulus Processes
     // =========================================================================
-    // Write Domain Random Driver (active during Test 4)
+    // Write Domain Random Driver (active during stress streaming)
     always @(posedge wclk or negedge wrst_n) begin
         if (!wrst_n) begin
             wcnt        <= 0;
@@ -155,7 +155,7 @@ module tb_async_fifo;
         end
     end
 
-    // Read Domain Random Receiver (active during Test 4)
+    // Read Domain Random Receiver (active during stress streaming)
     always @(posedge rclk or negedge rrst_n) begin
         if (!rrst_n) begin
             rcnt        <= 0;
@@ -217,18 +217,18 @@ module tb_async_fifo;
         repeat (10) @(posedge wclk);
 
         // =====================================================================
-        // Test 1: Reset & Initial Level Check
+        // Reset State and Initial Watermark Verification
         // =====================================================================
-        $display("--- Test 1: Reset & Initial Level Check ---");
+        $display("--- Reset State and Initial Watermark Verification ---");
         check("FIFO is empty after reset", rempty === 1'b1);
         check("FIFO is not full after reset", wfull === 1'b0);
         check("Initial write level is 0", wlevel == '0);
         check("Initial read level is 0", rlevel == '0);
 
         // =====================================================================
-        // Test 2: Sequential Fill to Full & Overflow Rejection
+        // FIFO Fill to Capacity and Overflow Protection
         // =====================================================================
-        $display("\n--- Test 2: Sequential Fill to Full & Overflow Rejection ---");
+        $display("\n--- FIFO Fill to Capacity and Overflow Protection ---");
         for (int i = 0; i < DEPTH; i++) begin
             push_word(32'hA000_0000 + i);
         end
@@ -243,9 +243,9 @@ module tb_async_fifo;
         check("wlevel remains at DEPTH after rejected write", wlevel == DEPTH);
 
         // =====================================================================
-        // Test 3: Sequential Drain to Empty & Underflow Protection
+        // FIFO Drain to Empty and Underflow Protection
         // =====================================================================
-        $display("\n--- Test 3: Sequential Drain to Empty & Underflow Protection ---");
+        $display("\n--- FIFO Drain to Empty and Underflow Protection ---");
         for (int i = 0; i < DEPTH; i++) begin
             pop_word(captured_rdata);
             if (captured_rdata !== (32'hA000_0000 + i)) begin
@@ -265,9 +265,9 @@ module tb_async_fifo;
         check("FIFO remains empty after underflow read attempt", rempty === 1'b1);
 
         // =====================================================================
-        // Test 4: Concurrent Dual-Clock Random Stress Streaming
+        // Asynchronous Dual-Clock Concurrent Stress Streaming
         // =====================================================================
-        $display("\n--- Test 4: Concurrent Dual-Clock Random Stress Streaming ---");
+        $display("\n--- Asynchronous Dual-Clock Concurrent Stress Streaming ---");
         $display("Streaming %0d words across 100MHz (write) and 151MHz (read) domains...", NUM_STRESS_WORDS);
 
         // Align stimulus process

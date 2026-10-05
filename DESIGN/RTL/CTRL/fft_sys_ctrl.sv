@@ -45,7 +45,7 @@ module fft_sys_ctrl #(
     logic [CNT_W-1:0] inflight;
 
     // =========================================================================
-    // 1. Enable Synchronization (HCLK -> ip_clk Domain)
+    // Enable Synchronization (HCLK -> ip_clk Domain)
     // =========================================================================
     bit_sync #(
         .WIDTH (1)
@@ -57,7 +57,7 @@ module fft_sys_ctrl #(
     );
 
     // =========================================================================
-    // 2. IP Streaming Flow Control
+    // IP Streaming Flow Control
     // =========================================================================
     // Clock enable reflects downstream backpressure (stalls when OUT FIFO is full)
     assign ip_ce       = ~out_full;
@@ -69,7 +69,7 @@ module fft_sys_ctrl #(
     assign out_wdata   = ip_data_out;
 
     // =========================================================================
-    // 3. In-Flight Sample Counter
+    // Sample Counter
     // =========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

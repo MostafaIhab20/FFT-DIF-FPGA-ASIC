@@ -71,7 +71,7 @@ module fft_reorder_buffer #(
     endfunction
 
     // =========================================================================
-    // 1. Write Interface: Store Bit-Reversed Samples into Natural Addresses
+    // Write Interface: Bit-Reversed Sample Storage
     // =========================================================================
     assign wr_addr_rev = bit_reverse(wr_cnt);
 
@@ -118,7 +118,7 @@ module fft_reorder_buffer #(
     end
 
     // =========================================================================
-    // 2. Read Interface: Sequential Natural-Order Readout
+    // Read Interface: Sequential Natural-Order Readout
     // =========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -168,7 +168,7 @@ module fft_reorder_buffer #(
     assign rd_data  = (rd_bank == 1'b0) ? mem_bank0[rd_cnt] : mem_bank1[rd_cnt];
 
     // =========================================================================
-    // 3. Bypass / Natural Order Selection
+    // Output Selection and Bypass Multiplexing
     // =========================================================================
     assign bp_frame_done = (wr_cnt == ADDR_W'(N - 1)) && valid_in && clk_en;
 

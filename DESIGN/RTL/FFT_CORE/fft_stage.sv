@@ -24,7 +24,7 @@ module fft_stage #(
     input  logic                     clk,
     input  logic                     rst_n,
     input  logic                     en,
-    input  logic                     sel,           // 0: Load/Flush (Phase 0), 1: Butterfly (Phase 1)
+    input  logic                     sel,           // Steering select: 0 = delay line fill/flush, 1 = butterfly computation
     input  logic [TW_ADDR_WIDTH-1:0] tw_addr = '0,  // Twiddle ROM address (unused in final stage)
     input  wire complex_t            stage_in,
     output complex_t                 stage_out
@@ -47,14 +47,14 @@ module fft_stage #(
     logic signed [DATA_WIDTH-1:0] neg_xr;
 
     // =========================================================================
-    // 1. MUX A: Delay Line Input Steering
+    // Delay Feedback Multiplexer (MUX A)
     //    sel = 0: Load incoming samples into delay line
     //    sel = 1: Feedback butterfly difference into delay line
     // =========================================================================
     assign mux_a_out = (sel) ? bf_diff : stage_in;
 
     // =========================================================================
-    // 2. Delay Feedback Line (Depth = DELAY_DEPTH)
+    // Delay Feedback Line Shift Register
     // =========================================================================
     delay_feedback_line #(
         .DEPTH(DELAY_DEPTH)
@@ -67,7 +67,7 @@ module fft_stage #(
     );
 
     // =========================================================================
-    // 3. Radix-2 DIF Butterfly PE
+    // Radix-2 Decimation-in-Frequency Butterfly Processing Element
     //    Pairs sample A (emerging from delay) with sample B (stage_in)
     // =========================================================================
     butterfly_radix2 u_butterfly (
@@ -78,7 +78,7 @@ module fft_stage #(
     );
 
     // =========================================================================
-    // 4. Twiddle Factor Section (Full Multiplier, W4 Swap-Negate, or Wire Pass-Through)
+    // Twiddle Factor Multiplication Unit
     // =========================================================================
     generate
         if (HAS_MULTIPLIER == 1) begin : gen_full_mult
@@ -128,7 +128,7 @@ module fft_stage #(
     endgenerate
 
     // =========================================================================
-    // 5. Multiplier Latency Synchronization
+    // Multiplier Pipeline Latency Balancing
     //    Aligns butterfly sum and MUX B select with tw_out pipeline latency
     // =========================================================================
     generate
@@ -162,7 +162,7 @@ module fft_stage #(
     endgenerate
 
     // =========================================================================
-    // 6. MUX B & Inter-Stage Synchronous Pipeline Register
+    // Stage Output Multiplexer and Pipeline Register
     //    sel_b_aligned = 0: Flushed difference output (after twiddle)
     //    sel_b_aligned = 1: Direct butterfly sum output
     // =========================================================================

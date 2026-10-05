@@ -21,7 +21,7 @@ module top_wrapper #(
     parameter logic [31:0] IP_VERSION           = 32'h0001_0000,
     parameter int          FFT_N                = 32,
     parameter int          MULT_PIPE_STAGES     = 0,
-    parameter bit          NATURAL_OUTPUT_ORDER = 1'b1    // 1: Natural order (0..N-1), 0: Bit-reversed DIF
+    parameter bit          NATURAL_OUTPUT_ORDER = 1'b1    // Enables natural output order (bypasses reordering if low)
 )(
     input  logic              HCLK,
     input  logic              HRESETn,

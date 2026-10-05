@@ -36,6 +36,9 @@ catch { set_property board_part xilinx.com:zcu104:part0:1.1 [current_project] }
 # Preserve hierarchy during synthesis for detailed module-level inspection
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY none [get_runs synth_1]
 
+# Configure Out-of-Context (OOC) synthesis mode (no I/O buffers, standalone IP flow)
+set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-mode out_of_context} -objects [get_runs synth_1]
+
 # ==============================================================================
 # 1. Set RTL, IPs and Constraints
 # ==============================================================================
@@ -47,7 +50,7 @@ set current_defs [get_property verilog_define [get_filesets sources_1]]
 set_property verilog_define [concat $current_defs TARGET_FPGA=1] [get_filesets sources_1]
 
 # Set XDC constraints
-add_files -fileset constrs_1 -norecurse $script_dir/constraints/sys_cons.xdc
+add_files -fileset constrs_1 -norecurse $script_dir/constraints/top_wrapper.xdc
 
 update_compile_order -fileset sources_1
 
@@ -94,10 +97,10 @@ report_drc -file $script_dir/reports/post_impl_drc.rpt
 
 # Write Functional and Timing Simulation Netlists and SDF for Gate-Level Simulation (GLS)
 puts "INFO: Exporting simulation netlists and SDF timing files..."
-write_verilog -mode funcsim -force $script_dir/outputs/fft_top_funcsim.v
-write_verilog -mode timesim -force $script_dir/outputs/fft_top_timesim.v
-write_sdf -mode timesim -process_corner slow -force $script_dir/outputs/fft_top_timesim_max.sdf
-write_sdf -mode timesim -process_corner fast -force $script_dir/outputs/fft_top_timesim_min.sdf
+write_verilog -mode funcsim -force $script_dir/outputs/top_wrapper_funcsim.v
+write_verilog -mode timesim -force $script_dir/outputs/top_wrapper_timesim.v
+write_sdf -mode timesim -process_corner slow -force $script_dir/outputs/top_wrapper_timesim_max.sdf
+write_sdf -mode timesim -process_corner fast -force $script_dir/outputs/top_wrapper_timesim_min.sdf
 
 puts "\n=============================================================================="
 puts "Vivado build complete for $project_name"

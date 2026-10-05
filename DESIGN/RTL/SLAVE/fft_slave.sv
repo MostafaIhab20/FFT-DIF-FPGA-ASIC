@@ -24,7 +24,7 @@ module ahb_slave #(
     input  logic              HREADY,      // System-level bus ready
     output logic              HREADYOUT,
     output logic [31:0]       HRDATA,
-    output logic              HRESP,       // 0: OKAY, 1: ERROR
+    output logic              HRESP,       // Bus transfer response (OKAY / ERROR)
 
     // Simple Internal Register Bus Interface
     output logic [ADDR_W-1:0] bus_addr,
@@ -54,7 +54,7 @@ module ahb_slave #(
     logic              access;
 
     // =========================================================================
-    // 1. Address Phase Capture (Sampled when HREADY is High)
+    // Address Phase Capture
     // =========================================================================
     always_ff @(posedge HCLK or negedge HRESETn) begin
         if (!HRESETn) begin
@@ -72,7 +72,7 @@ module ahb_slave #(
     end
 
     // =========================================================================
-    // 2. Error Response Generation (Protocol Conformance)
+    // Error Response Logic
     // =========================================================================
     // Restrict access strictly to 32-bit aligned words (HSIZE == 2, HADDR[1:0] == 00)
     assign size_bad = (d_size != 3'b010) || (d_addr[1:0] != 2'b00);
@@ -95,7 +95,7 @@ module ahb_slave #(
     assign HRESP     = err_now | err_ph2;
 
     // =========================================================================
-    // 3. Simple Register Bus Outputs
+    // Simple Register Bus Outputs
     // =========================================================================
     assign access    = d_valid & ~err_now & ~err_ph2;
 

@@ -125,7 +125,7 @@ module tb_ahb_slave;
     // =========================================================================
     // AHB-Lite Bus Master Tasks
     // =========================================================================
-    task automatic ahb_xfer(
+    task automatic ahb_transaction(
         input  bit          wr,
         input  logic [31:0] addr,
         input  logic [2:0]  size,
@@ -153,15 +153,15 @@ module tb_ahb_slave;
         #1;
     endtask
 
-    task automatic wr32(input logic [31:0] a, input logic [31:0] d);
+    task automatic ahb_write(input logic [31:0] a, input logic [31:0] d);
         logic [31:0] dummy_rd;
-        bit dummy_err;
-        ahb_xfer(1'b1, a, 3'b010, d, dummy_rd, dummy_err);
+        bit          dummy_err;
+        ahb_transaction(1'b1, a, 3'b010, d, dummy_rd, dummy_err);
     endtask
 
-    task automatic rd32(input logic [31:0] a, output logic [31:0] d);
+    task automatic ahb_read(input logic [31:0] a, output logic [31:0] d);
         bit dummy_err;
-        ahb_xfer(1'b0, a, 3'b010, 32'h0, d, dummy_err);
+        ahb_transaction(1'b0, a, 3'b010, 32'h0, d, dummy_err);
     endtask
 
     task automatic check(input string msg, input bit cond);
@@ -198,50 +198,48 @@ module tb_ahb_slave;
         repeat (2) @(posedge HCLK);
 
         // =====================================================================
-        // Test 1: Single Word Write & Readback
+        // Single Word Write & Readback Verification
         // =====================================================================
-        $display("--- Test 1: Single Word Write & Readback ---");
-        ahb_xfer(1'b1, 32'h04, 3'b010, 32'hAAAA_0004, rdata, resp_err);
-        check("Write to 0x04 succeeds without bus error", !resp_err);
+        $display("--- Single Word Write & Readback Verification ---");
+        ahb_write(32'h04, 32'hAAAA_0004);
+        ahb_write(32'h08, 32'hBBBB_0008);
+        check("Writes completed without bus errors", bus_errs == 0);
 
-        ahb_xfer(1'b1, 32'h08, 3'b010, 32'hBBBB_0008, rdata, resp_err);
-        check("Write to 0x08 succeeds without bus error", !resp_err);
+        ahb_read(32'h04, rdata);
+        check("Readback from 0x04 matches expected", (rdata == 32'hAAAA_0004) && (bus_errs == 0));
 
-        ahb_xfer(1'b0, 32'h04, 3'b010, 32'h0, rdata, resp_err);
-        check("Readback from 0x04 matches expected", (rdata == 32'hAAAA_0004) && !resp_err);
+        ahb_read(32'h08, rdata);
+        check("Readback from 0x08 matches expected", (rdata == 32'hBBBB_0008) && (bus_errs == 0));
 
-        ahb_xfer(1'b0, 32'h08, 3'b010, 32'h0, rdata, resp_err);
-        check("Readback from 0x08 matches expected", (rdata == 32'hBBBB_0008) && !resp_err);
-
-        ahb_xfer(1'b0, 32'h00, 3'b010, 32'h0, rdata, resp_err);
-        check("Readback from RO Reg 0x00 matches expected", (rdata == 32'h1234_0000) && !resp_err);
+        ahb_read(32'h00, rdata);
+        check("Readback from RO Reg 0x00 matches expected", (rdata == 32'h1234_0000) && (bus_errs == 0));
 
         // =====================================================================
-        // Test 2: Error Generation & Protocol Protection
+        // Error Response Generation and Protocol Protection
         // =====================================================================
-        $display("\n--- Test 2: Error Generation & Protocol Protection ---");
+        $display("\n--- Error Response Generation and Protocol Protection ---");
         prev_wr_strobes = wr_strobes;
         prev_rd_strobes = rd_strobes;
 
         // Write to Read-Only Reg 0
-        ahb_xfer(1'b1, 32'h00, 3'b010, 32'hDEAD_BEEF, rdata, resp_err);
-        check("Write to RO register triggers HRESP error", resp_err);
+        ahb_write(32'h00, 32'hDEAD_BEEF);
+        check("Write to RO register triggers HRESP error", bus_errs == 1);
 
         // Read unmapped address
-        ahb_xfer(1'b0, 32'h40, 3'b010, 32'h0, rdata, resp_err);
-        check("Read from unmapped address triggers HRESP error", resp_err);
+        ahb_read(32'h40, rdata);
+        check("Read from unmapped address triggers HRESP error", bus_errs == 2);
 
         // Write unmapped address
-        ahb_xfer(1'b1, 32'h40, 3'b010, 32'h0000_0001, rdata, resp_err);
-        check("Write to unmapped address triggers HRESP error", resp_err);
+        ahb_write(32'h40, 32'h0000_0001);
+        check("Write to unmapped address triggers HRESP error", bus_errs == 3);
 
-        // Unsupported size (half-word access)
-        ahb_xfer(1'b1, 32'h04, 3'b001, 32'h1111_1111, rdata, resp_err);
-        check("Half-word access triggers HRESP error", resp_err);
+        // half-word access via direct transaction
+        ahb_transaction(1'b1, 32'h04, 3'b001, 32'h1111_1111, rdata, resp_err);
+        check("Half-word access triggers HRESP error", resp_err && (bus_errs == 4));
 
         // Misaligned address (0x05)
-        ahb_xfer(1'b1, 32'h05, 3'b010, 32'h2222_2222, rdata, resp_err);
-        check("Misaligned address triggers HRESP error", resp_err);
+        ahb_write(32'h05, 32'h2222_2222);
+        check("Misaligned address triggers HRESP error", bus_errs == 5);
 
         check("No write/read strobes issued during error cycles",
               (wr_strobes == prev_wr_strobes) && (rd_strobes == prev_rd_strobes));
@@ -249,19 +247,19 @@ module tb_ahb_slave;
               (mock_regs[0] == 32'h1234_0000) && (mock_regs[1] == 32'hAAAA_0004));
 
         // =====================================================================
-        // Test 3: Recovery Following Bus Error
+        // Bus Error Recovery Verification
         // =====================================================================
-        $display("\n--- Test 3: Recovery Following Bus Error ---");
-        ahb_xfer(1'b1, 32'h0C, 3'b010, 32'hCCCC_000C, rdata, resp_err);
-        check("Write immediately after error cycles succeeds", !resp_err);
+        $display("\n--- Bus Error Recovery Verification ---");
+        ahb_write(32'h0C, 32'hCCCC_000C);
+        check("Write immediately after error cycles succeeds without new error", bus_errs == 5);
 
-        ahb_xfer(1'b0, 32'h0C, 3'b010, 32'h0, rdata, resp_err);
-        check("Readback immediately after error cycles matches", (rdata == 32'hCCCC_000C) && !resp_err);
+        ahb_read(32'h0C, rdata);
+        check("Readback immediately after error cycles matches expected", (rdata == 32'hCCCC_000C) && (bus_errs == 5));
 
         // =====================================================================
-        // Test 4: Back-to-Back Pipelined AHB Writes
+        // Pipelined Back-to-Back Bus Write Transactions
         // =====================================================================
-        $display("\n--- Test 4: Back-to-Back Pipelined AHB Writes ---");
+        $display("\n--- Pipelined Back-to-Back Bus Write Transactions ---");
         @(negedge HCLK);
         HSEL   = 1'b1;
         HTRANS = 2'b10; // NONSEQ
@@ -290,17 +288,17 @@ module tb_ahb_slave;
         check("Pipelined write to Reg 3 matches", mock_regs[3] == 32'h0000_00CC);
 
         // =====================================================================
-        // Test 5: Read Strobe Counting
+        // Read Strobe Generation Verification
         // =====================================================================
-        $display("\n--- Test 5: Read Strobe Counting ---");
+        $display("\n--- Read Strobe Generation Verification ---");
         prev_rd_strobes = rd_strobes;
-        ahb_xfer(1'b0, 32'h04, 3'b010, 32'h0, rdata, resp_err);
+        ahb_read(32'h04, rdata);
         check("Exactly one read strobe generated per read transaction", rd_strobes == prev_rd_strobes + 1);
 
         // =====================================================================
-        // Test 6: BUSY and IDLE Transfers Ignored
+        // Idle and Busy Transfer Filtering
         // =====================================================================
-        $display("\n--- Test 6: BUSY and IDLE Transfers Ignored ---");
+        $display("\n--- Idle and Busy Transfer Filtering ---");
         prev_wr_strobes = wr_strobes;
         @(negedge HCLK);
         HSEL   = 1'b1;

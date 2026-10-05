@@ -53,7 +53,7 @@ module complex_multiplier #(
     logic                           is_neg_j_aligned;
 
     // =========================================================================
-    // 1. Dual-Target Multiplier Core (FPGA DSP48 vs ASIC Booth)
+    // Dual-Target Multiplier Core (FPGA DSP48 vs. ASIC Booth)
     // =========================================================================
     generate
         if (TARGET_FPGA) begin : gen_fpga_dsp
@@ -171,7 +171,7 @@ module complex_multiplier #(
     endgenerate
 
     // =========================================================================
-    // 2. Zero-Power Bypass Pipeline Alignment
+    // Zero-Power Bypass Pipeline Alignment
     //    Aligns trivial bypass paths with multiplier pipeline stages
     // =========================================================================
     generate
@@ -211,7 +211,7 @@ module complex_multiplier #(
     endgenerate
 
     // =========================================================================
-    // 3. Rounding, Normalization, Saturation, and Zero-Power Bypass Selection
+    // Fixed-Point Formatting, Saturation, and Bypass Multiplexing
     // =========================================================================
     always_comb begin
         // Round-Half-Up (+2^14)

@@ -72,7 +72,7 @@ module adder_subtractor_bk_TB;
         $display("=========================================================================");
 
         // ---------------------------------------------------------------------
-        // Test 1: 18-bit Verification (Butterfly Width)
+        // 18-Bit Adder and Subtractor Verification (Butterfly PE)
         // ---------------------------------------------------------------------
         $display("\n>>> Starting 18-bit Adder/Subtractor Verification (10,000 vectors)...");
         for (int i = 0; i < 10000; i++) begin
@@ -100,7 +100,7 @@ module adder_subtractor_bk_TB;
         $display("  18-bit test finished with %0d errors.", total_errors);
 
         // ---------------------------------------------------------------------
-        // Test 2: 32-bit Verification (Multiplier Final Adder Width)
+        // 32-Bit Adder and Subtractor Verification (Multiplier Core)
         // ---------------------------------------------------------------------
         $display("\n>>> Starting 32-bit Adder/Subtractor Verification (10,000 vectors)...");
         for (int i = 0; i < 10000; i++) begin
@@ -128,7 +128,7 @@ module adder_subtractor_bk_TB;
         $display("  32-bit test finished with %0d errors cumulative.", total_errors);
 
         // ---------------------------------------------------------------------
-        // Test 3: 33-bit Verification (Complex Multiplier Accumulate Width)
+        // 33-Bit Adder and Subtractor Verification (Accumulator)
         // ---------------------------------------------------------------------
         $display("\n>>> Starting 33-bit Adder/Subtractor Verification (10,000 vectors)...");
         for (int i = 0; i < 10000; i++) begin
@@ -156,7 +156,7 @@ module adder_subtractor_bk_TB;
         $display("  33-bit test finished with %0d errors cumulative.", total_errors);
 
         // ---------------------------------------------------------------------
-        // Test 4: Corner cases (Signed saturation limits)
+        // Boundary and Arithmetic Corner Case Verification
         // ---------------------------------------------------------------------
         $display("\n>>> Testing Specific Corner Cases...");
         // 18-bit corner cases

@@ -32,7 +32,7 @@ module pulse_sync #(
     logic [SYNC_STAGES-1:0]   sync_pipe;
 
     // =========================================================================
-    // 1. Source Domain: Pulse-to-Toggle Generator
+    // Source Domain: Pulse-to-Toggle Generator
     // =========================================================================
     always_ff @(posedge src_clk or negedge src_rst_n) begin
         if (!src_rst_n) begin
@@ -43,7 +43,7 @@ module pulse_sync #(
     end
 
     // =========================================================================
-    // 2. Destination Domain: Multi-Stage Synchronizer
+    // Destination Domain: Multi-Stage Synchronizer
     // =========================================================================
     (* ASYNC_REG = "TRUE" *)
     always_ff @(posedge dst_clk or negedge dst_rst_n) begin
@@ -57,7 +57,7 @@ module pulse_sync #(
     assign toggle_dst = sync_pipe[SYNC_STAGES-1];
 
     // =========================================================================
-    // 3. Destination Domain: Edge Detector (Toggle-to-Pulse)
+    // Destination Domain: Edge Detector (Toggle-to-Pulse)
     // =========================================================================
     always_ff @(posedge dst_clk or negedge dst_rst_n) begin
         if (!dst_rst_n) begin

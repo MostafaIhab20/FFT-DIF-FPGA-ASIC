@@ -41,22 +41,22 @@ module addr_decoder #(
     // =========================================================================
     // Internal Signal Declarations
     // =========================================================================
-    logic [11:0] off;
+    logic [11:0] addr_offset;
     logic        is_reg;
     logic        is_win;
     logic        reg_valid;
     logic        reg_wr_ok;
 
     // =========================================================================
-    // 1. Address Region Classification
+    // Address Region Classification
     // =========================================================================
-    assign off      = bus_addr[11:0];
-    assign is_reg   = (off[11:8] == 4'h0);
-    assign is_win   = (off[11:8] == 4'h1);
-    assign reg_addr = off[7:2];
+    assign addr_offset  = bus_addr[11:0];
+    assign is_reg       = (addr_offset[11:8] == 4'h0);
+    assign is_win       = (addr_offset[11:8] == 4'h1);
+    assign reg_addr     = addr_offset[7:2];
 
     // =========================================================================
-    // 2. Register Access Validity & Permission Checking
+    // Register Access Checking
     // =========================================================================
     assign reg_valid = is_reg && (reg_addr <= R_OUT_THRESH);
     assign reg_wr_ok = (reg_addr == R_CTRL)       ||
@@ -69,7 +69,7 @@ module addr_decoder #(
     assign bus_err = !(is_win || reg_valid) || (bus_write && is_reg && !reg_wr_ok);
 
     // =========================================================================
-    // 3. Register File and FIFO Steering Strobes
+    // Register File and FIFO signals
     // =========================================================================
     assign reg_wr_en = bus_wr_en & is_reg;
     assign reg_wdata = bus_wdata;

@@ -8,16 +8,16 @@
 //                    - Radix-4 Booth Encoding (reduces 16 partial products to 8)
 //                    - Two-level 4:2 Compressor Tree (carry-free row reduction)
 //                    - Parameterized pipeline depth PIPELINE_STAGES:
-//                        0: Pure combinational (0 latency cycles)
-//                        1: 1 internal pipeline register after Compressor Tree
-//                        2: 2 internal pipeline registers (after Level 1 & Level 2)
+//                        0: Combinational mode (zero latency cycles)
+//                        1: Single internal pipeline register after compressor tree
+//                        2: Two internal pipeline registers across reduction stages
 //                    - Carry-Propagate Final Addition using Brent-Kung Adder
 // =============================================================================
 
 `timescale 1ns / 1ps
 
 // -----------------------------------------------------------------------------
-// 1. Primitive 4:2 Compressor Cell
+// Primitive 4:2 Compressor Cell
 //    Equation: X0 + X1 + X2 + X3 + Cin = Sum + 2 * (Carry + Cout)
 //    Notice: Cout depends ONLY on X0, X1, X2 (no ripple carry to adjacent bits!)
 // -----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ module compressor4_2 (
 endmodule : compressor4_2
 
 // -----------------------------------------------------------------------------
-// 2. 32-bit 4:2 Compressor Slice Array
+// 32-bit 4:2 Compressor Slice Array
 // -----------------------------------------------------------------------------
 module compressor4_2_array #(
     parameter int WIDTH = 32
@@ -75,10 +75,10 @@ module compressor4_2_array #(
 endmodule : compressor4_2_array
 
 // -----------------------------------------------------------------------------
-// 3. Top-Level Radix-4 Booth Multiplier
+// Top-Level Radix-4 Booth Multiplier
 // -----------------------------------------------------------------------------
 module booth_radix4_multiplier #(
-    parameter int PIPELINE_STAGES = 0 // 0: Combinational, 1: 1 Stage, 2: 2 Stages
+    parameter int PIPELINE_STAGES = 0 // Latency stages: 0 (comb), 1, or 2
 )(
     input  logic               clk,
     input  logic               rst_n,
@@ -111,7 +111,7 @@ module booth_radix4_multiplier #(
     logic               bk_ovf;
 
     // =========================================================================
-    // Phase 1: Radix-4 Booth Partial Product Generation
+    // Radix-4 Booth Partial Product Generation
     // =========================================================================
     assign b_ext = {b, 1'b0};
 
@@ -136,7 +136,7 @@ module booth_radix4_multiplier #(
     end
 
     // =========================================================================
-    // Phase 2: Level 1 Reduction (8 rows -> 4 rows)
+    // First-Level Compressor Reduction (8 Rows to 4 Rows)
     // =========================================================================
     compressor4_2_array #(.WIDTH(32)) u_comp_tree_l1_a (
         .x0    (pp[0]),
@@ -181,7 +181,7 @@ module booth_radix4_multiplier #(
     endgenerate
 
     // =========================================================================
-    // Phase 3: Level 2 Reduction (4 rows -> 2 rows)
+    // Second-Level Compressor Reduction (4 Rows to 2 Rows)
     // =========================================================================
     compressor4_2_array #(.WIDTH(32)) u_comp_tree_l2 (
         .x0    (s_a_pipe),
@@ -211,7 +211,7 @@ module booth_radix4_multiplier #(
     endgenerate
 
     // =========================================================================
-    // Phase 4: Final Vector Addition using Brent-Kung Adder
+    // Final Vector Addition (Brent-Kung Adder)
     // =========================================================================
     adder_subtractor_bk #(.WIDTH(32)) u_final_adder (
         .a        (s_fin_pipe),

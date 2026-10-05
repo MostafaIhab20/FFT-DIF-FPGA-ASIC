@@ -75,7 +75,7 @@ module async_fifo #(
     endfunction
 
     // =========================================================================
-    // 1. Write Interface Logic (wclk Domain)
+    // Write Interface Logic (wclk Domain)
     // =========================================================================
     assign wen       = winc & ~wfull;
     assign wbin_nxt  = wbin + (ADDR_W+1)'(wen);
@@ -113,7 +113,7 @@ module async_fifo #(
     end
 
     // =========================================================================
-    // 2. Read Interface Logic (rclk Domain)
+    // Read Interface Logic (rclk Domain)
     // =========================================================================
     assign ren        = rinc & ~rempty;
     assign rbin_nxt   = rbin + (ADDR_W+1)'(ren);
@@ -145,7 +145,7 @@ module async_fifo #(
     end
 
     // =========================================================================
-    // 3. Clock Domain Crossing Synchronizers for Gray Pointers
+    // Clock Domain Crossing Synchronizers for Gray Pointers
     // =========================================================================
     bit_sync #(
         .WIDTH  (ADDR_W+1),

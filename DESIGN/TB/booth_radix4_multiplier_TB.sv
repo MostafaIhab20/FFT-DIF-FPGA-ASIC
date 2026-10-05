@@ -102,9 +102,9 @@ module booth_radix4_multiplier_TB;
         $display("=========================================================================");
 
         // ---------------------------------------------------------------------
-        // Test 1: Combinational Multiplier (PIPELINE_STAGES = 0)
+        // Combinational Multiplier Verification (Zero Latency)
         // ---------------------------------------------------------------------
-        $display("\n>>> 1. Testing Combinational Multiplier (Corner Cases)...");
+        $display("\n>>> Testing Combinational Multiplier (Corner Cases)...");
         for (int i = 0; i < 8; i++) begin
             for (int j = 0; j < 8; j++) begin
                 a0 = test_vals[i];
@@ -118,7 +118,7 @@ module booth_radix4_multiplier_TB;
             end
         end
 
-        $display(">>> 1. Testing Combinational Multiplier (20,000 Random Vectors)...");
+        $display(">>> Testing Combinational Multiplier (20,000 Random Vectors)...");
         for (int i = 0; i < 20000; i++) begin
             a0 = $urandom;
             b0 = $urandom;
@@ -133,9 +133,9 @@ module booth_radix4_multiplier_TB;
         $display("  Combinational multiplier passed with %0d errors.", total_errors);
 
         // ---------------------------------------------------------------------
-        // Test 2: Pipelined Multiplier 1 Stage (PIPELINE_STAGES = 1)
+        // Single-Stage Pipelined Multiplier Verification
         // ---------------------------------------------------------------------
-        $display("\n>>> 2. Testing 1-Stage Pipelined Multiplier (10,000 Vectors)...");
+        $display("\n>>> Testing 1-Stage Pipelined Multiplier (10,000 Vectors)...");
         begin
             logic signed [15:0] pipe1_a_hist [0:10005];
             logic signed [15:0] pipe1_b_hist [0:10005];
@@ -166,9 +166,9 @@ module booth_radix4_multiplier_TB;
         $display("  1-stage pipelined multiplier passed cumulative errors: %0d.", total_errors);
 
         // ---------------------------------------------------------------------
-        // Test 3: Pipelined Multiplier 2 Stages (PIPELINE_STAGES = 2)
+        // Two-Stage Pipelined Multiplier Verification
         // ---------------------------------------------------------------------
-        $display("\n>>> 3. Testing 2-Stage Pipelined Multiplier (10,000 Vectors)...");
+        $display("\n>>> Testing 2-Stage Pipelined Multiplier (10,000 Vectors)...");
         begin
             logic signed [15:0] pipe2_a_hist [0:10005];
             logic signed [15:0] pipe2_b_hist [0:10005];

@@ -196,9 +196,9 @@ module tb_top;
         wait_idle();
 
         // =====================================================================
-        // Test 1: Reset & Peripheral Identification
+        // Reset and Peripheral Identification Verification
         // =====================================================================
-        $display("--- Test 1: Reset & Peripheral Identification ---");
+        $display("--- Reset & Peripheral Identification ---");
         ahb_read(A_ID, rdata);
         check("IP ID matches 0x49500001", rdata == 32'h4950_0001);
 
@@ -215,9 +215,9 @@ module tb_top;
         check("Initial OUT FIFO Level is 0", rdata == 32'd0);
 
         // =====================================================================
-        // Test 2: Register R/W and Threshold Configuration
+        // Register Read/Write and Threshold Configuration Verification
         // =====================================================================
-        $display("\n--- Test 2: Register R/W and Threshold Configuration ---");
+        $display("\n--- Register R/W and Threshold Configuration ---");
         ahb_write(A_INT_EN, 32'h7);
         ahb_read(A_INT_EN, rdata);
         check("INT_EN configured to 0x7", rdata == 32'h7);
@@ -231,9 +231,9 @@ module tb_top;
         check("OUT_THRESH programmed to 16", rdata == 32'd16);
 
         // =====================================================================
-        // Test 3: Hardware DMA Handshake Flow Control
+        // Hardware DMA Handshake Flow Control Verification
         // =====================================================================
-        $display("\n--- Test 3: Hardware DMA Handshake Flow Control ---");
+        $display("\n--- Hardware DMA Handshake Flow Control ---");
         // DMA disabled initially: dma_rx_req must be 0
         check("DMA disabled: dma_rx_req is low", dma_rx_req === 1'b0);
 
@@ -256,9 +256,9 @@ module tb_top;
         ahb_write(A_CTRL, 32'h00);
 
         // =====================================================================
-        // Test 4: Fault Injection & Sticky W1C Interrupts
+        // Fault Injection and Sticky W1C Interrupt Verification
         // =====================================================================
-        $display("\n--- Test 4: Fault Injection & Sticky W1C Interrupts ---");
+        $display("\n--- Fault Injection & Sticky W1C Interrupts ---");
         // Fill IN FIFO to maximum capacity (64 words)
         for (int i = 0; i < IN_DEPTH; i++) begin
             ahb_write(A_FIFO_DATA, 32'hA000_0000 + i);
@@ -298,9 +298,9 @@ module tb_top;
         check("IRQ line deasserted after W1C", irq === 1'b0);
 
         // =====================================================================
-        // Test 5: IN FIFO Flush Control
+        // Input FIFO Flush Control Verification
         // =====================================================================
-        $display("\n--- Test 5: IN FIFO Flush Control ---");
+        $display("\n--- Input FIFO Flush Control ---");
         // IN FIFO still contains 64 words; trigger flush_in (CTRL[2])
         ahb_write(A_CTRL, 32'h04);
         wait_idle();
@@ -312,9 +312,9 @@ module tb_top;
         check("STATUS in_empty asserted after flush_in", rdata[1] == 1'b1);
 
         // =====================================================================
-        // Test 6: End-to-End 32-Point FFT Frame Verification (DC Signal)
+        // End-to-End FFT Frame Verification (DC Test Vector)
         // =====================================================================
-        $display("\n--- Test 6: End-to-End 32-Point FFT Frame Verification (DC Signal) ---");
+        $display("\n--- End-to-End FFT Frame Verification (DC Signal) ---");
         // Enable only FRAME_DONE interrupt
         ahb_write(A_INT_EN, 32'h01);
 
@@ -363,9 +363,9 @@ module tb_top;
         check("IRQ line deasserted after clear", irq === 1'b0);
 
         // =====================================================================
-        // Test 7: Soft Reset
+        // Soft Reset and State Clearing Verification
         // =====================================================================
-        $display("\n--- Test 7: Soft Reset ---");
+        $display("\n--- Soft Reset Verification ---");
         // Push residual samples
         for (int i = 0; i < 4; i++) begin
             ahb_write(A_FIFO_DATA, 32'h1234_5678);
@@ -382,9 +382,9 @@ module tb_top;
         check("STATUS indicates both FIFOs empty after soft reset", (rdata[1] == 1'b1) && (rdata[3] == 1'b1));
 
         // =====================================================================
-        // Test 8: Bus Protocol Error Check
+        // Bus Protocol Error Detection and Protection Verification
         // =====================================================================
-        $display("\n--- Test 8: Bus Protocol Error Check ---");
+        $display("\n--- Bus Protocol Error Check ---");
         // Write to Read-Only ID register
         ahb_write(A_ID, 32'hBADD_CAFE);
 

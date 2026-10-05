@@ -53,16 +53,19 @@
 //     [15:0]  out_thresh [RW]
 // 11) FIFO_DATA      | Base + 0x100-0x1FF| WR  | -           |  32  |
 //     [31:0]  fifo_data [WR]
-// -----------------------------------------------------------------------------
-// P: RO = read only, RW = read/write, RO* = read only + W1C sticky bits,
-//    WR = write pushes IN FIFO, read pops OUT FIFO (same address window),
-//    SC = self-clearing
-// irq = |(INT_STATUS[2:0] & INT_EN[2:0])
-// dma_rx_req = enable & dma_en & (IN_LEVEL <= IN_THRESH)
-// dma_tx_req = dma_en & (OUT_LEVEL >= OUT_THRESH)
-// HRESP error: write to RO register, access to reserved/unmapped address
-//==============================================================================
-
+// --------------------------------------------------------------
+// Access Rights:
+//   RO  = Read-Only
+//   RW  = Read/Write
+//   RO* = Read-Only status with Write-1-to-Clear (W1C) sticky flags
+//   WR  = Write pushes to IN FIFO, Read pops from OUT FIFO
+//   SC  = Self-Clearing strobe bit
+//
+// Key Formulas & Flow Control:
+//   irq        = |(INT_STATUS[2:0] & INT_EN[2:0])
+//   dma_rx_req = enable & dma_en & (IN_LEVEL <= IN_THRESH)
+//   dma_tx_req = dma_en & (OUT_LEVEL >= OUT_THRESH)
+//   HRESP      = Asserted on write to RO registers or unmapped addresses
 import ip_regs_pkg::*;
 
 module reg_file #(
@@ -136,7 +139,7 @@ module reg_file #(
     logic             any_req;
 
     // =========================================================================
-    // 1. Live Status, DMA Requests, & Pure Sticky Interrupt Assembly
+    // Status, DMA Requests, & Interrupt 
     // =========================================================================
     assign busy            = rst_active | (in_level != '0) | ip_busy;
     assign in_empty        = (in_level == '0);
@@ -159,7 +162,7 @@ module reg_file #(
     assign irq = |(int_status[2:0] & int_en);
 
     // =========================================================================
-    // 2. Synchronous Register Write Logic
+    // Synchronous Register Write Logic
     // =========================================================================
     assign ctrl_wr = reg_wr_en && (reg_addr == R_CTRL);
     assign any_req = ctrl_wr && (reg_wdata[1] | reg_wdata[2] | reg_wdata[3]);
@@ -216,7 +219,7 @@ module reg_file #(
     end
 
     // =========================================================================
-    // 3. Combinational Register Read Multiplexer
+    // Combinational Register Read Logic
     // =========================================================================
     always_comb begin
         case (reg_addr)

@@ -96,7 +96,7 @@ module fft_top #(
     );
 
     // =========================================================================
-    // N Pipeline Stages
+    // Radix-2 DIF Pipeline Stages
     // =========================================================================
     generate
         for (genvar s = 0; s < NUM_STAGES; s++) begin : gen_stages
@@ -124,7 +124,7 @@ module fft_top #(
     endgenerate
 
     // =========================================================================
-    // Output Unpacking 
+    // Output Assignments
     // =========================================================================
     assign out_data_re = stage_data[NUM_STAGES].re;
     assign out_data_im = stage_data[NUM_STAGES].im;

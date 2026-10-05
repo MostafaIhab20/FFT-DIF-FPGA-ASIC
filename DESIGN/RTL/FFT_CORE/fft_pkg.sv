@@ -13,8 +13,8 @@ package fft_pkg;
     localparam int DATA_WIDTH = 16;
 
     // Platform Target Selection:
-    // 0: ASIC (Custom Brent-Kung Adders & Radix-4 Booth Multipliers)
-    // 1: FPGA (Inferred DSP48 hard slices & dedicated fast carry chains)
+    // ASIC mode: Custom Brent-Kung Adders and Radix-4 Booth Multipliers
+    // FPGA mode: Inferred DSP48 hard slices and dedicated fast carry chains
 `ifdef TARGET_FPGA
     localparam bit TARGET_FPGA = 1'b1;
 `else

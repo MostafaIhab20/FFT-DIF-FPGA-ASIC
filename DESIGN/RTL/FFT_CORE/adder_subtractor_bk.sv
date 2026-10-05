@@ -21,7 +21,7 @@ module adder_subtractor_bk #(
 )(
     input  logic [WIDTH-1:0] a,
     input  logic [WIDTH-1:0] b,
-    input  logic             sub,      // 0: A + B, 1: A - B
+    input  logic             sub,      // Operation select: 0 = add, 1 = subtract
     output logic [WIDTH-1:0] sum,
     output logic             cout,     // Carry-out / No-borrow
     output logic             overflow  // Signed overflow flag
@@ -54,7 +54,7 @@ module adder_subtractor_bk #(
     logic [WIDTH-1:0] c_in_bit;
 
     // =========================================================================
-    // 1. Pre-Processing Phase: Generate (G) and Propagate (P)
+    // Pre-Processing: Generate and Propagate Logic
     // =========================================================================
     always_comb begin
         a_ext  = '0;
@@ -79,7 +79,7 @@ module adder_subtractor_bk #(
     end
 
     // =========================================================================
-    // 2. Brent-Kung Forward Reduction Tree (Up-Tree: L levels)
+    // Brent-Kung Forward Reduction Tree (Up-Tree)
     // =========================================================================
     assign g_up[0] = g_init;
     assign p_up[0] = p_init;
@@ -102,7 +102,7 @@ module adder_subtractor_bk #(
     endgenerate
 
     // =========================================================================
-    // 3. Brent-Kung Reverse Distribution Tree (Down-Tree: L-1 levels)
+    // Brent-Kung Reverse Distribution Tree (Down-Tree)
     // =========================================================================
     assign g_down[0] = g_up[L];
     assign p_down[0] = p_up[L];
@@ -134,7 +134,7 @@ module adder_subtractor_bk #(
     assign g_final = (L <= 1) ? g_down[1] : g_down[L-1];
 
     // =========================================================================
-    // 4. Post-Processing Phase: Sum, Carry-Out, and Overflow
+    // Post-Processing: Sum, Carry-Out, and Overflow Generation
     // =========================================================================
     always_comb begin
         c_in_bit[0] = sub;

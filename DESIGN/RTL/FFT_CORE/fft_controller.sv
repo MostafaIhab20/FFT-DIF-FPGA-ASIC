@@ -50,7 +50,7 @@ module fft_controller #(
     logic [PIPELINE_LAT-1:0]                         valid_pipe;
 
     // =========================================================================
-    // 1. Core Enable & Flush Logic
+    // Core Enable and Pipeline Flush Logic
     // =========================================================================
     assign flushing = (flush_cnt != '0);
     assign core_en  = clk_en && (valid_in || flushing);
@@ -78,7 +78,7 @@ module fft_controller #(
     end
 
     // =========================================================================
-    // 2. Raw Stage Steering & Twiddle Address Decoders
+    // Raw Stage Steering and Twiddle Address Decoders
     // =========================================================================
     generate
         for (genvar s = 0; s < NUM_STAGES; s++) begin : gen_raw_ctrl
@@ -99,7 +99,7 @@ module fft_controller #(
     endgenerate
 
     // =========================================================================
-    // 3. Inter-Stage Control Skew Pipeline Registers
+    // Inter-Stage Control Skew Alignment Registers
     //    Stage s receives data delayed by STAGE_SKEW(s) cycles; control signals
     //    are delayed by the exact same amount to maintain strict synchronization.
     // =========================================================================
@@ -138,7 +138,7 @@ module fft_controller #(
     endgenerate
 
     // =========================================================================
-    // 4. Valid Pipeline Shift Register
+    // Valid Pipeline Shift Register
     // =========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
