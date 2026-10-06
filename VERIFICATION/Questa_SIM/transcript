@@ -1,0 +1,382 @@
+# do run_uvm.do fft_sanity_test
+# 0
+# ../../DESIGN/RTL
+# ../UVM
+# C:/questasim64_2021.1/verilog_src/uvm-1.2/src
+# C:/questasim64_2021.1/uvm-1.2/win64/uvm_dpi
+# fft_sanity_test
+# fft_sanity_test
+# QuestaSim-64 vmap 2021.1 Lib Mapping Utility 2021.01 Jan 19 2021
+# vmap work work 
+# Modifying modelsim.ini
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:18 on Oct 06,2026
+# vlog -sv -work work ../../DESIGN/RTL/FFT_CORE/fft_pkg.sv ../../DESIGN/RTL/FFT_CORE/adder_subtractor_bk.sv ../../DESIGN/RTL/FFT_CORE/booth_radix4_multiplier.sv ../../DESIGN/RTL/FFT_CORE/delay_feedback_line.sv ../../DESIGN/RTL/FFT_CORE/butterfly_radix2.sv ../../DESIGN/RTL/FFT_CORE/twiddle_rom.sv ../../DESIGN/RTL/FFT_CORE/complex_multiplier.sv ../../DESIGN/RTL/FFT_CORE/fft_stage.sv ../../DESIGN/RTL/FFT_CORE/fft_controller.sv ../../DESIGN/RTL/FFT_CORE/fft_top.sv ../../DESIGN/RTL/FFT_CORE/fft_reorder_buffer.sv ../../DESIGN/RTL/REG_FILE/ip_regs_pkg.sv ../../DESIGN/RTL/ASYC_FIFO/async_fifo.sv ../../DESIGN/RTL/CTRL/addr_decoder.sv ../../DESIGN/RTL/CTRL/bit_sync.sv ../../DESIGN/RTL/CTRL/reset_sync.sv ../../DESIGN/RTL/CTRL/pulse_sync.sv ../../DESIGN/RTL/CTRL/rst_ctrl.sv ../../DESIGN/RTL/CTRL/fft_sys_ctrl.sv ../../DESIGN/RTL/REG_FILE/fft_rf.sv ../../DESIGN/RTL/SLAVE/fft_slave.sv ../../DESIGN/RTL/top_wrapper.sv 
+# -- Compiling package fft_pkg
+# -- Compiling module adder_subtractor_bk
+# -- Compiling module compressor4_2
+# -- Compiling module compressor4_2_array
+# -- Compiling module booth_radix4_multiplier
+# -- Compiling package delay_feedback_line_sv_unit
+# -- Importing package fft_pkg
+# -- Compiling module delay_feedback_line
+# -- Compiling package butterfly_radix2_sv_unit
+# -- Compiling module butterfly_radix2
+# -- Compiling package twiddle_rom_sv_unit
+# -- Compiling module twiddle_rom
+# -- Compiling package complex_multiplier_sv_unit
+# -- Compiling module complex_multiplier
+# -- Compiling package fft_stage_sv_unit
+# -- Compiling module fft_stage
+# -- Compiling package fft_controller_sv_unit
+# -- Compiling module fft_controller
+# -- Compiling package fft_top_sv_unit
+# -- Compiling module fft_top
+# -- Compiling module fft_reorder_buffer
+# -- Compiling package ip_regs_pkg
+# -- Compiling module async_fifo
+# -- Compiling package addr_decoder_sv_unit
+# -- Importing package ip_regs_pkg
+# -- Compiling module addr_decoder
+# -- Compiling module bit_sync
+# -- Compiling module reset_sync
+# -- Compiling module pulse_sync
+# -- Compiling module rst_ctrl
+# -- Compiling module fft_sys_ctrl
+# -- Compiling package fft_rf_sv_unit
+# -- Compiling module reg_file
+# -- Compiling module ahb_slave
+# -- Compiling package top_wrapper_sv_unit
+# -- Compiling module top_wrapper
+# 
+# Top level modules:
+# 	top_wrapper
+# End time: 18:33:18 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:18 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" C:/questasim64_2021.1/verilog_src/uvm-1.2/src/uvm_pkg.sv 
+# -- Compiling package uvm_pkg (uvm-1.2 Built-in)
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:19 on Oct 06,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:19 on Oct 06,2026
+# vlog -sv -work work ../UVM/agents/ahb_agent/ahb_if.sv ../UVM/agents/sideband_agent/sideband_if.sv 
+# -- Compiling interface ahb_if
+# -- Compiling interface sideband_if
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:19 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:19 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/ahb_agent" ../UVM/agents/ahb_agent/ahb_types_pkg.sv ../UVM/agents/ahb_agent/ahb_agent_pkg.sv 
+# -- Compiling package ahb_types_pkg
+# -- Compiling package ahb_agent_pkg
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# -- Importing package ahb_types_pkg
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:19 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:19 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/sideband_agent" ../UVM/agents/sideband_agent/sideband_agent_pkg.sv 
+# -- Compiling package sideband_agent_pkg
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:20 on Oct 06,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:20 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/ahb_agent" "+incdir+../UVM/agents/sideband_agent" "+incdir+../UVM/env" ../UVM/env/fft_env_pkg.sv 
+# -- Compiling package fft_env_pkg
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# -- Importing package ahb_types_pkg
+# -- Importing package ahb_agent_pkg
+# -- Importing package sideband_agent_pkg
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:20 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:20 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/ahb_agent" "+incdir+../UVM/seqs" ../UVM/seqs/fft_seq_pkg.sv 
+# -- Compiling package fft_seq_pkg
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# -- Importing package ahb_types_pkg
+# -- Importing package ahb_agent_pkg
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:20 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:20 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/ahb_agent" "+incdir+../UVM/agents/sideband_agent" "+incdir+../UVM/env" "+incdir+../UVM/seqs" "+incdir+../UVM/tests" ../UVM/tests/fft_test_pkg.sv 
+# -- Compiling package fft_test_pkg
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# -- Importing package ahb_types_pkg
+# -- Importing package ahb_agent_pkg
+# -- Importing package sideband_agent_pkg
+# -- Importing package fft_env_pkg
+# -- Importing package fft_seq_pkg
+# 
+# Top level modules:
+# 	--none--
+# End time: 18:33:20 on Oct 06,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# QuestaSim-64 vlog 2021.1 Compiler 2021.01 Jan 19 2021
+# Start time: 18:33:20 on Oct 06,2026
+# vlog -sv -work work "+incdir+C:/questasim64_2021.1/verilog_src/uvm-1.2/src" "+incdir+../UVM/agents/ahb_agent" "+incdir+../UVM/agents/sideband_agent" "+incdir+../UVM/env" "+incdir+../UVM/seqs" "+incdir+../UVM/tests" ../UVM/fft_top_uvm.sv 
+# -- Compiling package fft_top_uvm_sv_unit
+# -- Importing package uvm_pkg (uvm-1.2 Built-in)
+# -- Importing package ahb_types_pkg
+# -- Importing package ahb_agent_pkg
+# -- Importing package sideband_agent_pkg
+# -- Importing package fft_env_pkg
+# -- Importing package fft_seq_pkg
+# -- Importing package fft_test_pkg
+# -- Compiling module tb_top_uvm
+# 
+# Top level modules:
+# 	tb_top_uvm
+# End time: 18:33:21 on Oct 06,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps -suppress 3009,8785 -sv_lib C:/questasim64_2021.1/uvm-1.2/win64/uvm_dpi "+UVM_TESTNAME=fft_sanity_test" work.tb_top_uvm -do "run -all; quit -f" 
+# Start time: 18:33:21 on Oct 06,2026
+# Loading C:/Users/ASUS/AppData/Local/Temp\ASUS@LAPTOP-92QPETFC_dpi_31620\win64_gcc-13.2.0\export_tramp.dll
+# ** Note: (vsim-3812) Design is being optimized...
+# //  Questa Sim-64
+# //  Version 2021.1 win64 Jan 19 2021
+# //
+# //  Copyright 1991-2021 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading sv_std.std
+# Loading work.fft_pkg(fast)
+# Loading work.complex_multiplier_sv_unit(fast)
+# Loading work.twiddle_rom_sv_unit(fast)
+# Loading work.butterfly_radix2_sv_unit(fast)
+# Loading work.delay_feedback_line_sv_unit(fast)
+# Loading work.fft_stage_sv_unit(fast)
+# Loading work.fft_controller_sv_unit(fast)
+# Loading work.fft_top_sv_unit(fast)
+# Loading work.ip_regs_pkg(fast)
+# Loading work.fft_rf_sv_unit(fast)
+# Loading work.addr_decoder_sv_unit(fast)
+# Loading work.top_wrapper_sv_unit(fast)
+# Loading work.ahb_if(fast)
+# Loading work.sideband_if(fast)
+# Loading work.ahb_types_pkg(fast)
+# Loading work.uvm_pkg(fast)
+# Loading work.ahb_agent_pkg(fast)
+# Loading work.fft_seq_pkg(fast)
+# Loading work.sideband_agent_pkg(fast)
+# Loading work.fft_env_pkg(fast)
+# Loading work.fft_test_pkg(fast)
+# Loading work.fft_top_uvm_sv_unit(fast)
+# Loading work.tb_top_uvm(fast)
+# Compiling C:/Users/ASUS/AppData/Local/Temp\ASUS@LAPTOP-92QPETFC_dpi_31620\win64_gcc-13.2.0\exportwrapper.c
+# Loading C:/Users/ASUS/AppData/Local/Temp\ASUS@LAPTOP-92QPETFC_dpi_31620\win64_gcc-13.2.0\vsim_auto_compile.dll
+# Loading C:/questasim64_2021.1/uvm-1.2/win64/uvm_dpi.dll
+# run -all
+# UVM_INFO C:/questasim64_2021.1/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# UVM_INFO @ 0: reporter [RNTST] Running test fft_sanity_test...
+# UVM_INFO C:/questasim64_2021.1/verilog_src/uvm-1.2/src/base/uvm_root.svh(579) @ 0: reporter [UVMTOP] UVM testbench topology:
+# -----------------------------------------------------------------
+# Name                       Type                       Size  Value
+# -----------------------------------------------------------------
+# uvm_test_top               fft_sanity_test            -     @346 
+#   m_env                    fft_env                    -     @366 
+#     m_ahb_agent            ahb_agent                  -     @380 
+#       ahb_agt_ap           uvm_analysis_port          -     @473 
+#       ahb_drv              ahb_driver                 -     @484 
+#         rsp_port           uvm_analysis_port          -     @503 
+#         seq_item_port      uvm_seq_item_pull_port     -     @493 
+#       ahb_mon              ahb_monitor                -     @464 
+#         ahb_mon_ap         uvm_analysis_port          -     @652 
+#       ahb_sqr              ahb_sequencer              -     @513 
+#         rsp_export         uvm_analysis_export        -     @522 
+#         seq_item_export    uvm_seq_item_pull_imp      -     @640 
+#         arbitration_queue  array                      0     -    
+#         lock_queue         array                      0     -    
+#         num_last_reqs      integral                   32    'd1  
+#         num_last_rsps      integral                   32    'd1  
+#     m_coverage             fft_coverage               -     @431 
+#       analysis_imp         uvm_analysis_imp           -     @440 
+#       sideband_export      uvm_analysis_imp_cov_sb    -     @450 
+#     m_scoreboard           fft_scoreboard             -     @402 
+#       ahb_export           uvm_analysis_imp_ahb       -     @411 
+#       sideband_export      uvm_analysis_imp_sideband  -     @421 
+#     m_sideband_agent       sideband_agent             -     @393 
+#       sb_agt_ap            uvm_analysis_port          -     @680 
+#       sb_mon               sideband_monitor           -     @671 
+#         sb_mon_ap          uvm_analysis_port          -     @691 
+# -----------------------------------------------------------------
+# 
+# UVM_INFO ../UVM/tests/fft_sanity_test.svh(33) @ 0: uvm_test_top [SANITY_TEST] Launching Sanity Verification Test...
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(34) @ 0: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Starting FFT Sanity Sequence execution...
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(38) @ 105000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Read IP ID: 0x49500001
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 125000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x5699a384)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(41) @ 125000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Read IP Version: 0x00000000
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 145000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x6e6ab828)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 165000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xb7cada20)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(46) @ 175000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Configured INT_EN: 0x00000010
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(49) @ 175000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Pushing 32 DC complex samples into IN FIFO...
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 195000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x20ecec78)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 215000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x30dc7994)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 255000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x72db5678)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 275000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x352deab8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 295000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x6c866dd0)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 315000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x5f44431c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 335000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x562ae848)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 405000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xc4a16278)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 485000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xfb40a540)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 555000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x594f170c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 585000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x3266b5c8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 605000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x944a4cd4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 635000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xec09a3e0)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 675000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x4810d4bc)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 695000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x877ea9f4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 715000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xc9f69f00)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 745000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for             Sub-word access size (addr=0x7ffc30ac)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 845000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x8b42ce00)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 865000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x3d5e7c7c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 895000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xb56a0e0c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 975000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for             Sub-word access size (addr=0x32b720c8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 995000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xc7af55a4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1025000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x397e680c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1105000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xcc39c94c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1125000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x811b1d7c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1145000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x38d93cd8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1165000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x5e3d33c4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1205000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x47bd29e4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1225000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xb2db16d8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1315000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x1c47045c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1335000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x7b51c6e8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1365000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x652b7284)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(56) @ 1365000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] IN FIFO Level prior to processing: 0
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(59) @ 1365000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Enabling FFT Core (CTRL[0] = 1)...
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1385000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for             Sub-word access size (addr=0x052070bc)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1405000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x319ee5b4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1425000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x9b260704)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1445000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x8e357a58)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(68) @ 1495000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] INT_STATUS after processing: 0x00000000
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(71) @ 1495000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] Popping 32 output bins from OUT FIFO...
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1515000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x9896d6e8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1535000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xd64e46d8)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1555000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x74a2a930)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1575000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x01ac8ae4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1605000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x96c6d974)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1665000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xf4fec724)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1685000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x2f297dac)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1705000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x30a23354)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1785000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x8a676b54)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1805000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xdeb9a814)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1835000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xfe9ebc1c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1915000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x7d5aed64)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1945000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xda0eaf7c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 1965000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x97bfa884)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2075000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xca485970)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2155000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x6169e200)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2185000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xf4fa5ce0)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2225000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xe09d8fb0)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2245000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xa1ca77b4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2265000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xa07ae960)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2285000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x4ef5a504)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2305000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xa01ba3cc)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2335000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x3963879c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2385000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xd995c5b0)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2455000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xf6ad95b4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2485000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x32bfe54c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2585000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x67d9fe6c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2625000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x18cc7a58)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2695000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xfbdc9730)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2725000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xda30a23c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2825000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x11c1e60c)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2865000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0xe7f708f4)
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2885000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x69e2eb18)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(81) @ 2885000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] INT_STATUS after W1C clear: 0x00000000
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2905000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x429423fc)
+# UVM_INFO ../UVM/seqs/fft_sanity_seq.svh(86) @ 2905000: uvm_test_top.m_env.m_ahb_agent.ahb_sqr@@seq [SANITY_SEQ] FFT Sanity Sequence execution completed successfully!
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(104) @ 2925000: uvm_test_top.m_env.m_scoreboard [SCB_BUS_ERR] PASS: Bus error correctly generated for Access to unmapped address range (addr=0x929f49ec)
+# UVM_INFO ../UVM/tests/fft_sanity_test.svh(41) @ 3405000: uvm_test_top [SANITY_TEST] Sanity Verification Test Completed!
+# UVM_INFO C:/questasim64_2021.1/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 3405000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO ../UVM/env/fft_coverage.svh(167) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] =========================================================================
+# UVM_INFO ../UVM/env/fft_coverage.svh(168) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT]                        FUNCTIONAL COVERAGE REPORT                        
+# UVM_INFO ../UVM/env/fft_coverage.svh(169) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] =========================================================================
+# UVM_INFO ../UVM/env/fft_coverage.svh(170) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] AHB Protocol Coverage : 69.44%
+# UVM_INFO ../UVM/env/fft_coverage.svh(171) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] Registers Coverage    : 38.33%
+# UVM_INFO ../UVM/env/fft_coverage.svh(172) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] Sidebands Coverage    : 33.33%
+# UVM_INFO ../UVM/env/fft_coverage.svh(173) @ 3405000: uvm_test_top.m_env.m_coverage [COV_REPORT] =========================================================================
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(261) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] =========================================================================
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(262) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT]                       SCOREBOARD VERIFICATION REPORT                     
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(263) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] =========================================================================
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(264) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Total Output Samples Checked : 2
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(265) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Data Matches                 : 0
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(266) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Data Mismatches              : 0
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(267) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Register Matches             : 0
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(268) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Register Mismatches          : 0
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(269) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] Bus Error Checks             : 74
+# UVM_INFO ../UVM/env/fft_scoreboard.svh(270) @ 3405000: uvm_test_top.m_env.m_scoreboard [SCB_REPORT] =========================================================================
+# UVM_INFO C:/questasim64_2021.1/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 3405000: reporter [UVM/REPORT/SERVER] 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :  108
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [COV_REPORT]     7
+# [RNTST]     1
+# [SANITY_SEQ]    11
+# [SANITY_TEST]     2
+# [SCB_BUS_ERR]    74
+# [SCB_REPORT]    10
+# [TEST_DONE]     1
+# [UVM/RELNOTES]     1
+# [UVMTOP]     1
+# 
+# ** Note: $finish    : C:/questasim64_2021.1/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 3405 ns  Iteration: 68  Instance: /tb_top_uvm
+# End time: 18:33:35 on Oct 06,2026, Elapsed time: 0:00:14
+# Errors: 0, Warnings: 0
