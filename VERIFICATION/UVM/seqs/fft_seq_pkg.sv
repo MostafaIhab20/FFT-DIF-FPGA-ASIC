@@ -25,6 +25,7 @@ package fft_seq_pkg;
     // ==================================================
     `include "fft_base_seq.svh"
     `include "fft_sanity_seq.svh"
+    `include "fft_burst_seq.svh"
 
 endpackage : fft_seq_pkg
 

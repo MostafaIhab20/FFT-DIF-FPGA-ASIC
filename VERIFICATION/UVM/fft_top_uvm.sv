@@ -93,6 +93,7 @@ module tb_top_uvm;
         .HSEL        (ahb_vif.HSEL),
         .HADDR       (ahb_vif.HADDR),
         .HTRANS      (ahb_vif.HTRANS),
+        .HBURST      (ahb_vif.HBURST),
         .HWRITE      (ahb_vif.HWRITE),
         .HSIZE       (ahb_vif.HSIZE),
         .HWDATA      (ahb_vif.HWDATA),

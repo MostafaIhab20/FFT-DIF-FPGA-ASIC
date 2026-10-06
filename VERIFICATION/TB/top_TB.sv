@@ -50,6 +50,7 @@ module tb_top;
     logic        HSEL;
     logic [31:0] HADDR;
     logic [1:0]  HTRANS;
+    logic [2:0]  HBURST;
     logic        HWRITE;
     logic [2:0]  HSIZE;
     logic [31:0] HWDATA;
@@ -90,6 +91,7 @@ module tb_top;
         .HSEL       (HSEL),
         .HADDR      (HADDR),
         .HTRANS     (HTRANS),
+        .HBURST     (HBURST),
         .HWRITE     (HWRITE),
         .HSIZE      (HSIZE),
         .HWDATA     (HWDATA),
@@ -129,6 +131,7 @@ module tb_top;
         @(negedge HCLK);
         HSEL   = 1'b1;
         HTRANS = 2'b10; // NONSEQ
+        HBURST = 3'b000; // SINGLE
         HADDR  = addr;
         HWRITE = wr;
         HSIZE  = 3'b010; // 32-bit word
@@ -180,6 +183,7 @@ module tb_top;
         HSEL       = 1'b0;
         HADDR      = '0;
         HTRANS     = '0;
+        HBURST     = '0;
         HWRITE     = 1'b0;
         HSIZE      = 3'b010;
         HWDATA     = '0;

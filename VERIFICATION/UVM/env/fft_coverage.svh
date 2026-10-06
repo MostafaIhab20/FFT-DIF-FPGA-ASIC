@@ -57,8 +57,20 @@ class fft_coverage extends uvm_subscriber #(ahb_seq_item);
             bins ERROR = {HRESP_ERROR};
         }
 
+        cp_burst: coverpoint cur_ahb_item.burst {
+            bins SINGLE = {HBURST_SINGLE};
+            bins INCR   = {HBURST_INCR};
+            bins WRAP4  = {HBURST_WRAP4};
+            bins INCR4  = {HBURST_INCR4};
+            bins WRAP8  = {HBURST_WRAP8};
+            bins INCR8  = {HBURST_INCR8};
+            bins WRAP16 = {HBURST_WRAP16};
+            bins INCR16 = {HBURST_INCR16};
+        }
+
         cross_addr_rw_resp: cross cp_addr_space, cp_write, cp_resp;
         cross_size_resp:    cross cp_size, cp_resp;
+        cross_burst_rw:     cross cp_burst, cp_write;
     endgroup
 
     // ==================================================

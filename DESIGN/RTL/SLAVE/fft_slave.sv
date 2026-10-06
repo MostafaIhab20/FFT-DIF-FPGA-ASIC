@@ -18,6 +18,7 @@ module ahb_slave #(
     input  logic              HSEL,
     input  logic [ADDR_W-1:0] HADDR,
     input  logic [1:0]        HTRANS,
+    input  logic [2:0]        HBURST,
     input  logic              HWRITE,
     input  logic [2:0]        HSIZE,
     input  logic [31:0]       HWDATA,
@@ -43,6 +44,7 @@ module ahb_slave #(
     logic              d_valid;
     logic              d_write;
     logic [2:0]        d_size;
+    logic [2:0]        d_burst;
     logic [ADDR_W-1:0] d_addr;
 
     // Error Handling State
@@ -61,12 +63,14 @@ module ahb_slave #(
             d_valid <= 1'b0;
             d_write <= 1'b0;
             d_size  <= '0;
+            d_burst <= '0;
             d_addr  <= '0;
         end else if (HREADY) begin
             // Sample active transfer on NONSEQ (2'b10) or SEQ (2'b11)
             d_valid <= HSEL & HTRANS[1];
             d_write <= HWRITE;
             d_size  <= HSIZE;
+            d_burst <= HBURST;
             d_addr  <= HADDR;
         end
     end

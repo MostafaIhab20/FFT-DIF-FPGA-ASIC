@@ -26,6 +26,7 @@ interface ahb_if #(
     logic              HSEL;
     logic [ADDR_W-1:0] HADDR;
     logic [1:0]        HTRANS;
+    logic [2:0]        HBURST;
     logic              HWRITE;
     logic [2:0]        HSIZE;
     logic [DATA_W-1:0] HWDATA;
@@ -42,6 +43,7 @@ interface ahb_if #(
         output HSEL;
         output HADDR;
         output HTRANS;
+        output HBURST;
         output HWRITE;
         output HSIZE;
         output HWDATA;
@@ -59,6 +61,7 @@ interface ahb_if #(
         input HSEL;
         input HADDR;
         input HTRANS;
+        input HBURST;
         input HWRITE;
         input HSIZE;
         input HWDATA;
@@ -90,7 +93,7 @@ interface ahb_if #(
     property p_addr_ctrl_stable_during_wait;
         @(posedge HCLK) disable iff (!HRESETn)
         (HSEL && HTRANS[1] && !HREADYOUT) |=> 
-            ($stable(HADDR) && $stable(HTRANS) && $stable(HWRITE) && $stable(HSIZE) && $stable(HSEL));
+            ($stable(HADDR) && $stable(HTRANS) && $stable(HBURST) && $stable(HWRITE) && $stable(HSIZE) && $stable(HSEL));
     endproperty
     assert_addr_ctrl_stable: assert property (p_addr_ctrl_stable_during_wait)
         else $error("[SVA-AHB] Address or control signals changed during wait state!");
@@ -114,7 +117,7 @@ interface ahb_if #(
     // Control signal unknown (X/Z) prevention while out of reset
     property p_no_x_on_control;
         @(posedge HCLK) disable iff (!HRESETn)
-        !$isunknown({HSEL, HTRANS, HWRITE, HSIZE, HREADY});
+        !$isunknown({HSEL, HTRANS, HBURST, HWRITE, HSIZE, HREADY});
     endproperty
     assert_no_x_control: assert property (p_no_x_on_control)
         else $error("[SVA-AHB] Unknown value detected on AHB master control signals!");

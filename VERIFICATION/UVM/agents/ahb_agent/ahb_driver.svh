@@ -61,6 +61,7 @@ class ahb_driver extends uvm_driver #(ahb_seq_item);
         vif.drv_cb.HSEL   <= 1'b0;
         vif.drv_cb.HADDR  <= '0;
         vif.drv_cb.HTRANS <= HTRANS_IDLE;
+        vif.drv_cb.HBURST <= HBURST_SINGLE;
         vif.drv_cb.HWRITE <= 1'b0;
         vif.drv_cb.HSIZE  <= HSIZE_WORD;
         vif.drv_cb.HWDATA <= '0;
@@ -76,49 +77,105 @@ class ahb_driver extends uvm_driver #(ahb_seq_item);
         @(vif.drv_cb);
     endtask
 
-    // Drive a complete AHB transfer (Address Phase + Data Phase)
+    // Drive a complete AHB transfer (Address Phase + Data Phase, supports multi-beat bursts)
     virtual task drive_transfer(ahb_seq_item item);
+        bit [31:0]   beat_addr;
+        int unsigned len;
+
+        // Ensure payload array consistency
+        if (item.burst_data.size() == 0) begin
+            item.burst_len  = 1;
+            item.burst      = HBURST_SINGLE;
+            item.burst_data = new[1];
+            item.burst_data[0] = item.data;
+        end else if (item.burst_len == 0) begin
+            item.burst_len = item.burst_data.size();
+        end
+
+        len = item.burst_len;
+        if (!item.write && item.burst_data.size() < len) begin
+            item.burst_data = new[len];
+        end
+
         // Inter-transfer idle delay
         if (item.wait_cycles > 0) begin
             vif.drv_cb.HSEL   <= 1'b0;
             vif.drv_cb.HTRANS <= HTRANS_IDLE;
+            vif.drv_cb.HBURST <= HBURST_SINGLE;
             repeat (item.wait_cycles) @(vif.drv_cb);
         end
 
         // Wait for bus ready before presenting new address
         while (!vif.drv_cb.HREADYOUT) @(vif.drv_cb);
 
-        // Address Phase
+        beat_addr = item.addr;
+
+        // Drive Beat 0 Address Phase
         vif.drv_cb.HSEL   <= 1'b1;
-        vif.drv_cb.HADDR  <= item.addr;
-        vif.drv_cb.HTRANS <= item.trans;
+        vif.drv_cb.HADDR  <= beat_addr;
+        vif.drv_cb.HTRANS <= HTRANS_NONSEQ;
+        vif.drv_cb.HBURST <= item.burst;
         vif.drv_cb.HWRITE <= item.write;
         vif.drv_cb.HSIZE  <= item.size;
 
-        // Hold address and control signals stable until accepted by slave
+        // Hold Beat 0 address until accepted by slave
         do begin
             @(vif.drv_cb);
         end while (!vif.drv_cb.HREADYOUT);
 
-        // Data Phase
+        // Pipelined phases: overlap data phase of beat k-1 with address phase of beat k
+        for (int unsigned k = 1; k < len; k++) begin
+            beat_addr = ahb_next_burst_addr(beat_addr, item.burst, item.size);
+
+            // Address phase of beat k
+            vif.drv_cb.HSEL   <= 1'b1;
+            vif.drv_cb.HADDR  <= beat_addr;
+            vif.drv_cb.HTRANS <= HTRANS_SEQ;
+            vif.drv_cb.HBURST <= item.burst;
+            vif.drv_cb.HWRITE <= item.write;
+            vif.drv_cb.HSIZE  <= item.size;
+
+            // Data phase of beat k-1
+            if (item.write) begin
+                vif.drv_cb.HWDATA <= item.burst_data[k-1];
+            end else begin
+                vif.drv_cb.HWDATA <= '0;
+            end
+
+            // Wait until beat k address and beat k-1 data are accepted
+            do begin
+                @(vif.drv_cb);
+            end while (!vif.drv_cb.HREADYOUT);
+
+            // Sample read data of beat k-1
+            if (!item.write) begin
+                item.burst_data[k-1] = vif.drv_cb.HRDATA;
+            end
+        end
+
+        // Final Beat Data Phase (beat len-1)
+        // Bus returns to IDLE for address phase
+        vif.drv_cb.HSEL   <= 1'b0;
+        vif.drv_cb.HTRANS <= HTRANS_IDLE;
+        vif.drv_cb.HBURST <= HBURST_SINGLE;
+
         if (item.write) begin
-            vif.drv_cb.HWDATA <= item.data;
+            vif.drv_cb.HWDATA <= item.burst_data[len-1];
         end else begin
             vif.drv_cb.HWDATA <= '0;
         end
 
-        // Default next bus state to IDLE
-        vif.drv_cb.HSEL   <= 1'b0;
-        vif.drv_cb.HTRANS <= HTRANS_IDLE;
-
-        // Wait for slave to complete data phase
-        while (!vif.drv_cb.HREADYOUT) begin
+        // Wait until final beat data is accepted
+        do begin
             @(vif.drv_cb);
-        end
+        end while (!vif.drv_cb.HREADYOUT);
 
-        // Capture read response or write status
+        // Sample read data and response for final beat
         if (!item.write) begin
-            item.data = vif.drv_cb.HRDATA;
+            item.burst_data[len-1] = vif.drv_cb.HRDATA;
+            item.data              = item.burst_data[0];
+        end else begin
+            item.data              = item.burst_data[0];
         end
         item.resp = ahb_resp_e'(vif.drv_cb.HRESP);
     endtask

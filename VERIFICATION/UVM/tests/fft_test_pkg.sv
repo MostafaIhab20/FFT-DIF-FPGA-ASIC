@@ -28,6 +28,7 @@ package fft_test_pkg;
     // ==================================================
     `include "fft_base_test.svh"
     `include "fft_sanity_test.svh"
+    `include "fft_burst_test.svh"
 
 endpackage : fft_test_pkg
 

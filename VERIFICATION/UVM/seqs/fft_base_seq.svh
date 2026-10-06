@@ -44,18 +44,18 @@ class fft_base_seq extends uvm_sequence #(ahb_seq_item);
     // ==================================================
     // Raw AHB Write Transaction
     virtual task write_bus(
-        input bit [31:0] addr,
-        input bit [31:0] data,
+        input bit [31:0]   target_addr,
+        input bit [31:0]   wr_data,
         input int unsigned wait_cycles = 0,
-        input ahb_size_e size = HSIZE_WORD
+        input ahb_size_e   transfer_size = HSIZE_WORD
     );
         req = ahb_seq_item::type_id::create("req");
         start_item(req);
         if (!req.randomize() with {
-            req.addr        == addr;
-            req.data        == data;
+            req.addr        == target_addr;
+            req.data        == wr_data;
             req.write       == 1'b1;
-            req.size        == size;
+            req.size        == transfer_size;
             req.wait_cycles == wait_cycles;
         }) begin
             `uvm_fatal("BASE_SEQ", "Randomization failed for write_bus")
@@ -65,23 +65,23 @@ class fft_base_seq extends uvm_sequence #(ahb_seq_item);
 
     // Raw AHB Read Transaction
     virtual task read_bus(
-        input  bit [31:0] addr,
-        output bit [31:0] data,
+        input  bit [31:0]   target_addr,
+        output bit [31:0]   rd_data,
         input  int unsigned wait_cycles = 0,
-        input  ahb_size_e size = HSIZE_WORD
+        input  ahb_size_e   transfer_size = HSIZE_WORD
     );
         req = ahb_seq_item::type_id::create("req");
         start_item(req);
         if (!req.randomize() with {
-            req.addr        == addr;
+            req.addr        == target_addr;
             req.write       == 1'b0;
-            req.size        == size;
+            req.size        == transfer_size;
             req.wait_cycles == wait_cycles;
         }) begin
             `uvm_fatal("BASE_SEQ", "Randomization failed for read_bus")
         end
         finish_item(req);
-        data = req.data;
+        rd_data = req.data;
     endtask
 
     // ==================================================
@@ -104,6 +104,74 @@ class fft_base_seq extends uvm_sequence #(ahb_seq_item);
 
     virtual task pop_sample(output bit [31:0] sample);
         read_bus(ADDR_FIFO_DATA, sample);
+    endtask
+
+    // Burst AHB Write Transaction
+    virtual task write_burst(
+        input bit [31:0]   target_addr,
+        input bit [31:0]   wr_data[],
+        input ahb_burst_e  burst_mode,
+        input int unsigned wait_cycles = 0,
+        input ahb_size_e   transfer_size = HSIZE_WORD
+    );
+        req = ahb_seq_item::type_id::create("req");
+        start_item(req);
+        if (!req.randomize() with {
+            req.addr        == target_addr;
+            req.burst       == burst_mode;
+            req.burst_len   == wr_data.size();
+            req.write       == 1'b1;
+            req.size        == transfer_size;
+            req.wait_cycles == wait_cycles;
+        }) begin
+            `uvm_fatal("BASE_SEQ", "Randomization failed for write_burst")
+        end
+        req.burst_data = wr_data;
+        if (wr_data.size() > 0) begin
+            req.data = wr_data[0];
+        end
+        finish_item(req);
+    endtask
+
+    // Burst AHB Read Transaction
+    virtual task read_burst(
+        input  bit [31:0]   target_addr,
+        output bit [31:0]   rd_data[],
+        input  ahb_burst_e  burst_mode,
+        input  int unsigned burst_length,
+        input  int unsigned wait_cycles = 0,
+        input  ahb_size_e   transfer_size = HSIZE_WORD
+    );
+        req = ahb_seq_item::type_id::create("req");
+        start_item(req);
+        if (!req.randomize() with {
+            req.addr        == target_addr;
+            req.burst       == burst_mode;
+            req.burst_len   == burst_length;
+            req.write       == 1'b0;
+            req.size        == transfer_size;
+            req.wait_cycles == wait_cycles;
+        }) begin
+            `uvm_fatal("BASE_SEQ", "Randomization failed for read_burst")
+        end
+        finish_item(req);
+        rd_data = req.burst_data;
+    endtask
+
+    // Burst FIFO Streaming Tasks
+    virtual task push_samples_burst(
+        input bit [31:0]  samples[],
+        input ahb_burst_e burst = HBURST_INCR4
+    );
+        write_burst(ADDR_FIFO_DATA, samples, burst);
+    endtask
+
+    virtual task pop_samples_burst(
+        output bit [31:0]   samples[],
+        input  int unsigned len,
+        input  ahb_burst_e  burst = HBURST_INCR4
+    );
+        read_burst(ADDR_FIFO_DATA, samples, burst, len);
     endtask
 
     // ==================================================

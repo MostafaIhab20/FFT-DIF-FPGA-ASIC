@@ -53,6 +53,7 @@ class ahb_monitor extends uvm_monitor;
         logic              hsel;
         logic [31:0]       haddr;
         logic [1:0]        htrans;
+        logic [2:0]        hburst;
         logic              hwrite;
         logic [2:0]        hsize;
         logic [31:0]       hwdata;
@@ -67,6 +68,7 @@ class ahb_monitor extends uvm_monitor;
             hsel      = vif.mon_cb.HSEL;
             haddr     = vif.mon_cb.HADDR;
             htrans    = vif.mon_cb.HTRANS;
+            hburst    = vif.mon_cb.HBURST;
             hwrite    = vif.mon_cb.HWRITE;
             hsize     = vif.mon_cb.HSIZE;
             hwdata    = vif.mon_cb.HWDATA;
@@ -87,6 +89,8 @@ class ahb_monitor extends uvm_monitor;
                 end else begin
                     item.data = hrdata;
                 end
+                item.burst_data = new[1];
+                item.burst_data[0] = item.data;
                 item.resp = ahb_resp_e'(hresp);
 
                 `uvm_info("AHB_MON", $sformatf("Sampled: %s", item.convert2string()), UVM_HIGH)
@@ -96,10 +100,12 @@ class ahb_monitor extends uvm_monitor;
             // Capture address phase of newly initiated transfer
             if (hsel && htrans[1] && (hreadyout === 1'b1)) begin
                 item = ahb_seq_item::type_id::create("mon_item");
-                item.addr  = haddr;
-                item.write = hwrite;
-                item.size  = ahb_size_e'(hsize);
-                item.trans = ahb_trans_e'(htrans);
+                item.addr      = haddr;
+                item.write     = hwrite;
+                item.size      = ahb_size_e'(hsize);
+                item.trans     = ahb_trans_e'(htrans);
+                item.burst     = ahb_burst_e'(hburst);
+                item.burst_len = 1;
                 pending_q.push_back(item);
             end
         end

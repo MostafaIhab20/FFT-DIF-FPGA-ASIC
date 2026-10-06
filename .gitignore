@@ -4,24 +4,25 @@
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# 1. QuestaSim / ModelSim Artifacts
+# QuestaSim / ModelSim Artifacts
 # ------------------------------------------------------------------------------
-Questa_SIM/work/
-Questa_SIM/transcript
-Questa_SIM/sim.log
-Questa_SIM/compile.log
-Questa_SIM/vsim.wlf
-Questa_SIM/*.wlf
-Questa_SIM/*.vstf
-Questa_SIM/*.qdb
-Questa_SIM/*.qpg
-Questa_SIM/*.qtl
-Questa_SIM/modelsim.ini
+**/work/
+**/work/**
+**/transcript
+**/sim.log
+**/compile.log
+**/vsim.wlf
+*.wlf
+*.vstf
+*.qdb
+*.qpg
+*.qtl
+**/modelsim.ini
 covhtmlreport/
 *.ucdb
 
 # ------------------------------------------------------------------------------
-# 2. Xilinx / AMD Vivado Artifacts
+# Xilinx / AMD Vivado Artifacts
 # ------------------------------------------------------------------------------
 .Xil/
 *.jou
@@ -41,7 +42,7 @@ vivado*.tar.gz
 *build*
 
 # ------------------------------------------------------------------------------
-# 3. ASIC EDA Tools (Synopsys, Cadence, OpenLane / OpenROAD)
+# ASIC EDA Tools (Synopsys, Cadence, OpenLane / OpenROAD)
 # ------------------------------------------------------------------------------
 # Synopsys Design Compiler / ICC2
 alib-*/
@@ -64,7 +65,7 @@ runs/
 *.gds.gz
 
 # ------------------------------------------------------------------------------
-# 4. MATLAB & Python Temporary Files
+# MATLAB & Python Temporary Files
 # ------------------------------------------------------------------------------
 *.asv
 *.m~
@@ -74,7 +75,7 @@ __pycache__/
 *.png_tmp
 
 # ------------------------------------------------------------------------------
-# 5. OS & Editor Junk
+# OS & Editor Junk
 # ------------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
