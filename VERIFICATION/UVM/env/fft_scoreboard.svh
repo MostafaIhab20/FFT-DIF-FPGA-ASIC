@@ -12,7 +12,9 @@
 `define FFT_SCOREBOARD_SVH
 
 `uvm_analysis_imp_decl(_ahb)
-`uvm_analysis_imp_decl(_sideband)
+`uvm_analysis_imp_decl(_irq)
+`uvm_analysis_imp_decl(_dma_rx)
+`uvm_analysis_imp_decl(_dma_tx)
 
 class fft_scoreboard extends uvm_scoreboard;
 
@@ -24,8 +26,10 @@ class fft_scoreboard extends uvm_scoreboard;
     // ==================================================
     // TLM Analysis Exports
     // ==================================================
-    uvm_analysis_imp_ahb #(ahb_seq_item, fft_scoreboard)           ahb_export;
-    uvm_analysis_imp_sideband #(sideband_seq_item, fft_scoreboard) sideband_export;
+    uvm_analysis_imp_ahb    #(ahb_seq_item, fft_scoreboard)      ahb_export;
+    uvm_analysis_imp_irq    #(sideband_seq_item, fft_scoreboard) irq_export;
+    uvm_analysis_imp_dma_rx #(sideband_seq_item, fft_scoreboard) dma_rx_export;
+    uvm_analysis_imp_dma_tx #(sideband_seq_item, fft_scoreboard) dma_tx_export;
 
     // ==================================================
     // Register File Shadow State
@@ -58,8 +62,10 @@ class fft_scoreboard extends uvm_scoreboard;
     // ==================================================
     function new(string name = "fft_scoreboard", uvm_component parent = null);
         super.new(name, parent);
-        ahb_export      = new("ahb_export", this);
-        sideband_export = new("sideband_export", this);
+        ahb_export    = new("ahb_export", this);
+        irq_export    = new("irq_export", this);
+        dma_rx_export = new("dma_rx_export", this);
+        dma_tx_export = new("dma_tx_export", this);
     endfunction
 
     // ==================================================
@@ -103,7 +109,8 @@ class fft_scoreboard extends uvm_scoreboard;
             bus_error_checks++;
             `uvm_info("SCB_BUS_ERR", $sformatf("PASS: Bus error correctly generated for %s (addr=0x%08h)",
                 is_unmapped_access(item) ? "Access to unmapped address range" :
-                (!is_word_aligned(item)  ? "Unaligned bus access" : "Sub-word access size"),
+                (!is_word_aligned(item)  ? "Unaligned bus access" :
+                (item.size != HSIZE_WORD ? "Sub-word access size" : "Write to Read-Only register")),
                 item.addr), UVM_MEDIUM)
             return;
         end
@@ -119,15 +126,23 @@ class fft_scoreboard extends uvm_scoreboard;
     endfunction
 
     // ==================================================
-    // Sideband Analysis Write Implementation
+    // Sideband Analysis Write Implementations
     // ==================================================
-    virtual function void write_sideband(sideband_seq_item item);
+    virtual function void write_irq(sideband_seq_item item);
         // Verify interrupt line consistency against shadow register state
         logic expected_irq = |(shadow_int_status & shadow_int_en);
         if (item.irq !== expected_irq) begin
             `uvm_info("SCB_IRQ", $sformatf("Sideband IRQ state: %0b (shadow_status=0x%08h, shadow_en=0x%08h)",
                 item.irq, shadow_int_status, shadow_int_en), UVM_HIGH)
         end
+    endfunction
+
+    virtual function void write_dma_rx(sideband_seq_item item);
+        `uvm_info("SCB_DMA_RX", $sformatf("Sideband DMA RX state: %0b at %0t", item.dma_rx_req, item.event_time), UVM_HIGH)
+    endfunction
+
+    virtual function void write_dma_tx(sideband_seq_item item);
+        `uvm_info("SCB_DMA_TX", $sformatf("Sideband DMA TX state: %0b at %0t", item.dma_tx_req, item.event_time), UVM_HIGH)
     endfunction
 
     // ==================================================
@@ -138,8 +153,22 @@ class fft_scoreboard extends uvm_scoreboard;
 
         if (item.write) begin
             case (offset)
-                12'h008: shadow_ctrl       = item.data;
-                12'h010: shadow_int_en     = item.data;
+                12'h008: begin
+                    if (item.data[29] | item.data[30] | item.data[31]) begin
+                        shadow_ctrl = 32'h0;
+                    end else begin
+                        shadow_ctrl = item.data & 32'h03;
+                    end
+                    if (item.data[29]) begin
+                        in_samples_q.delete();
+                        expected_out_q.delete();
+                        shadow_int_status = 32'h0;
+                    end else begin
+                        if (item.data[30]) in_samples_q.delete();
+                        if (item.data[31]) expected_out_q.delete();
+                    end
+                end
+                12'h010: shadow_int_en     = item.data & 32'h07;
                 12'h014: shadow_int_status &= ~item.data; // W1C behavior
                 12'h020: shadow_in_thresh  = item.data;
                 12'h024: shadow_out_thresh = item.data;
@@ -192,22 +221,23 @@ class fft_scoreboard extends uvm_scoreboard;
         end
     endfunction
 
-    // Compute expected 32-point FFT output using golden reference model
+    // Compute expected 32-point FFT output using C++ DPI-C reference model
     virtual function void compute_and_queue_expected_frame();
-        logic [31:0] frame_in[32];
-        logic [31:0] frame_out[32];
+        int frame_in[32];
+        int frame_out[32];
 
         for (int i = 0; i < 32; i++) begin
-            frame_in[i] = in_samples_q.pop_front();
+            frame_in[i] = int'(in_samples_q.pop_front());
         end
 
-        fft_golden_model::compute_fft_32(frame_in, frame_out, 1'b1);
+        // Directly invoke pure DPI-C reference model
+        fft_dpi_pkg::fft_radix2_dif_32(frame_in, frame_out);
 
         for (int i = 0; i < 32; i++) begin
             expected_out_q.push_back(frame_out[i]);
         end
 
-        `uvm_info("SCB_MODEL", "Golden reference model computed 32-point DIF FFT frame successfully", UVM_MEDIUM)
+        `uvm_info("SCB_MODEL", "C++ DPI reference model computed 32-point DIF FFT frame successfully", UVM_MEDIUM)
     endfunction
 
     // Validate actual sample against golden reference with tolerance margin
@@ -236,7 +266,7 @@ class fft_scoreboard extends uvm_scoreboard;
     // Address Decoding Utility Functions
     // ==================================================
     virtual function bit is_unmapped_access(ahb_seq_item item);
-        return (item.addr[11:0] >= 12'h200);
+        return (item.addr[11:0] >= 12'h200) || (item.addr[11:8] == 4'h0 && item.addr[7:2] > 6'd9);
     endfunction
 
     virtual function bit is_word_aligned(ahb_seq_item item);

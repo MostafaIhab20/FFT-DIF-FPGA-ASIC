@@ -165,7 +165,7 @@ module reg_file #(
     // Synchronous Register Write Logic
     // =========================================================================
     assign ctrl_wr = reg_wr_en && (reg_addr == R_CTRL);
-    assign any_req = ctrl_wr && (reg_wdata[1] | reg_wdata[2] | reg_wdata[3]);
+    assign any_req = ctrl_wr && (reg_wdata[CTRL_SOFT_RESET] | reg_wdata[CTRL_FLUSH_IN] | reg_wdata[CTRL_FLUSH_OUT]);
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -182,14 +182,14 @@ module reg_file #(
             sticky_unf        <= 1'b0;
         end else begin
             // Generate single-cycle reset/flush pulses
-            soft_reset_req <= ctrl_wr & reg_wdata[1];
-            flush_in_req   <= ctrl_wr & reg_wdata[2];
-            flush_out_req  <= ctrl_wr & reg_wdata[3];
+            soft_reset_req <= ctrl_wr & reg_wdata[CTRL_SOFT_RESET];
+            flush_in_req   <= ctrl_wr & reg_wdata[CTRL_FLUSH_IN];
+            flush_out_req  <= ctrl_wr & reg_wdata[CTRL_FLUSH_OUT];
 
             // Enable and DMA mode control (cleared automatically on any reset request)
             if (ctrl_wr) begin
-                enable <= reg_wdata[0];
-                dma_en <= reg_wdata[4];
+                enable <= reg_wdata[CTRL_ENABLE];
+                dma_en <= reg_wdata[CTRL_DMA_EN];
             end
             if (any_req) begin
                 enable <= 1'b0;
@@ -225,7 +225,7 @@ module reg_file #(
         case (reg_addr)
             R_ID:         reg_rdata = ID;
             R_VERSION:    reg_rdata = VERSION;
-            R_CTRL:       reg_rdata = {27'b0, dma_en, 3'b0, enable};
+            R_CTRL:       reg_rdata = {30'b0, dma_en, enable};
             R_STATUS:     reg_rdata = status;
             R_INT_EN:     reg_rdata = {29'b0, int_en};
             R_INT_STATUS: reg_rdata = int_status;

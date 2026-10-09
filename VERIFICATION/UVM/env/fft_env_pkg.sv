@@ -28,7 +28,6 @@ package fft_env_pkg;
     // Component Includes
     // ==================================================
     `include "fft_env_config.svh"
-    `include "fft_golden_model.svh"
     `include "fft_scoreboard.svh"
     `include "fft_coverage.svh"
     `include "fft_virtual_sequencer.svh"
