@@ -23,6 +23,7 @@ class ahb_seq_item extends uvm_sequence_item;
     rand bit             write;
     rand ahb_size_e      size;
     rand ahb_trans_e     trans;
+    rand bit             sel;
     rand int unsigned    wait_cycles;
     ahb_resp_e           resp;
 
@@ -37,6 +38,10 @@ class ahb_seq_item extends uvm_sequence_item;
     // Default constraints for aligned 32-bit transfers
     constraint default_aligned_c {
         soft addr[1:0] == 2'b00;
+    }
+
+    constraint default_sel_c {
+        soft sel == 1'b1;
     }
 
     constraint default_size_c {
@@ -61,7 +66,7 @@ class ahb_seq_item extends uvm_sequence_item;
         } else if (burst inside {HBURST_WRAP16, HBURST_INCR16}) {
             burst_len == 16;
         } else if (burst == HBURST_INCR) {
-            burst_len inside {[1:16]};
+            burst_len inside {[1:64]};
         }
     }
 

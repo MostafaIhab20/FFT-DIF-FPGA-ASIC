@@ -33,7 +33,7 @@ class fft_sanity_test extends fft_base_test;
         `uvm_info("SANITY_TEST", "Launching Sanity Verification Test...", UVM_LOW)
 
         seq = fft_sanity_seq::type_id::create("seq");
-        seq.start(m_env.m_ahb_agent.ahb_sqr);
+        seq.start(m_env.m_virtual_sequencer);
 
         // Allow drain time for final scoreboard and pipeline assertions
         #500ns;

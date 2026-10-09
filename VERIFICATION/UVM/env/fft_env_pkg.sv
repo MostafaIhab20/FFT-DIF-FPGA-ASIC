@@ -21,6 +21,8 @@ package fft_env_pkg;
     import ahb_types_pkg::*;
     import ahb_agent_pkg::*;
     import sideband_agent_pkg::*;
+    import fft_reg_pkg::*;
+    import fft_dpi_pkg::*;
 
     // ==================================================
     // Component Includes
@@ -29,6 +31,7 @@ package fft_env_pkg;
     `include "fft_golden_model.svh"
     `include "fft_scoreboard.svh"
     `include "fft_coverage.svh"
+    `include "fft_virtual_sequencer.svh"
     `include "fft_env.svh"
 
 endpackage : fft_env_pkg

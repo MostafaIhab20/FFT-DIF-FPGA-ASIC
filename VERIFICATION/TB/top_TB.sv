@@ -242,12 +242,12 @@ module tb_top;
         check("DMA disabled: dma_rx_req is low", dma_rx_req === 1'b0);
 
         // Set dma_en=1 with enable=0: dma_rx_req must remain 0
-        ahb_write(A_CTRL, 32'h10);
+        ahb_write(A_CTRL, 32'h02);
         #1;
         check("dma_en=1 but enable=0: dma_rx_req remains low", dma_rx_req === 1'b0);
 
         // Set dma_en=1 and enable=1: IN FIFO is almost-empty, dma_rx_req must assert
-        ahb_write(A_CTRL, 32'h11);
+        ahb_write(A_CTRL, 32'h03);
         #1;
         check("dma_en=1 and enable=1: dma_rx_req asserts", dma_rx_req === 1'b1);
 
@@ -305,8 +305,8 @@ module tb_top;
         // Input FIFO Flush Control Verification
         // =====================================================================
         $display("\n--- Input FIFO Flush Control ---");
-        // IN FIFO still contains 64 words; trigger flush_in (CTRL[2])
-        ahb_write(A_CTRL, 32'h04);
+        // IN FIFO still contains 64 words; trigger flush_in (CTRL[30])
+        ahb_write(A_CTRL, 32'h4000_0000);
         wait_idle();
 
         ahb_read(A_INLVL, rdata);
@@ -375,8 +375,8 @@ module tb_top;
             ahb_write(A_FIFO_DATA, 32'h1234_5678);
         end
 
-        // Trigger Soft Reset (CTRL[1] = 1)
-        ahb_write(A_CTRL, 32'h02);
+        // Trigger Soft Reset (CTRL[29] = 1)
+        ahb_write(A_CTRL, 32'h2000_0000);
         wait_idle();
 
         ahb_read(A_CTRL, rdata);

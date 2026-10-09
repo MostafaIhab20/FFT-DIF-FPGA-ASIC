@@ -111,9 +111,9 @@ class ahb_driver extends uvm_driver #(ahb_seq_item);
         beat_addr = item.addr;
 
         // Drive Beat 0 Address Phase
-        vif.drv_cb.HSEL   <= 1'b1;
+        vif.drv_cb.HSEL   <= item.sel;
         vif.drv_cb.HADDR  <= beat_addr;
-        vif.drv_cb.HTRANS <= HTRANS_NONSEQ;
+        vif.drv_cb.HTRANS <= item.trans;
         vif.drv_cb.HBURST <= item.burst;
         vif.drv_cb.HWRITE <= item.write;
         vif.drv_cb.HSIZE  <= item.size;

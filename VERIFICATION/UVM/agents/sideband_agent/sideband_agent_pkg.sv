@@ -23,7 +23,9 @@ package sideband_agent_pkg;
     `include "sideband_seq_item.svh"
     `include "sideband_agent_config.svh"
     `include "sideband_monitor.svh"
+    `include "sideband_sequencer.svh"
     `include "sideband_agent.svh"
+    `include "sideband_reactive_seqs.svh"
 
 endpackage : sideband_agent_pkg
 

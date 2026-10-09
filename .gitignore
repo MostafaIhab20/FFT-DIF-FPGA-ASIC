@@ -20,6 +20,12 @@
 **/modelsim.ini
 covhtmlreport/
 *.ucdb
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*/Questa_SIM
 
 # ------------------------------------------------------------------------------
 # Xilinx / AMD Vivado Artifacts
@@ -69,6 +75,9 @@ runs/
 # ------------------------------------------------------------------------------
 *.asv
 *.m~
+*.mldatx
+**/codegen_out/
+**/codegen_out/**
 __pycache__/
 *.py[cod]
 *$py.class

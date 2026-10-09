@@ -34,7 +34,7 @@ class fft_burst_test extends fft_base_test;
         `uvm_info("BURST_TEST", "Launching AHB Burst Verification Test...", UVM_LOW)
 
         seq = fft_burst_seq::type_id::create("seq");
-        seq.start(m_env.m_ahb_agent.ahb_sqr);
+        seq.start(m_env.m_virtual_sequencer);
 
         // Allow drain time for final scoreboard and pipeline assertions
         #500ns;

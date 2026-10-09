@@ -34,6 +34,7 @@ interface ahb_if #(
     logic              HREADYOUT;
     logic [DATA_W-1:0] HRDATA;
     logic              HRESP;
+    bit                enable_alignment_check = 1'b1;
 
     // ==================================================
     // Driver Clocking Block
@@ -108,7 +109,7 @@ interface ahb_if #(
 
     // 32-bit Word access address alignment check
     property p_word_aligned_address;
-        @(posedge HCLK) disable iff (!HRESETn)
+        @(posedge HCLK) disable iff (!HRESETn || !enable_alignment_check)
         (HSEL && HTRANS[1] && (HSIZE == 3'b010)) |-> (HADDR[1:0] == 2'b00);
     endproperty
     assert_word_aligned_addr: assert property (p_word_aligned_address)

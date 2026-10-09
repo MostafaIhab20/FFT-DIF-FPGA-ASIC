@@ -37,6 +37,12 @@ class fft_env_config extends uvm_object;
     bit has_sideband_agent = 1'b1;
     bit has_scoreboard     = 1'b1;
     bit has_coverage       = 1'b1;
+    bit has_reg_model      = 1'b1;
+
+    // ==================================================
+    // Register Model Handle
+    // ==================================================
+    fft_reg_block reg_model;
 
     // ==================================================
     // Constructor

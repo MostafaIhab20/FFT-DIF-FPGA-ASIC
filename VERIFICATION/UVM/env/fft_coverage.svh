@@ -12,7 +12,9 @@
 `define FFT_COVERAGE_SVH
 
 `uvm_analysis_imp_decl(_cov_ahb)
-`uvm_analysis_imp_decl(_cov_sb)
+`uvm_analysis_imp_decl(_cov_irq)
+`uvm_analysis_imp_decl(_cov_dma_rx)
+`uvm_analysis_imp_decl(_cov_dma_tx)
 
 class fft_coverage extends uvm_subscriber #(ahb_seq_item);
 
@@ -24,9 +26,11 @@ class fft_coverage extends uvm_subscriber #(ahb_seq_item);
     // ==================================================
     // TLM Exports & Sampling Variables
     // ==================================================
-    uvm_analysis_imp_cov_sb #(sideband_seq_item, fft_coverage) sideband_export;
-    ahb_seq_item                                              cur_ahb_item;
-    sideband_seq_item                                         cur_sb_item;
+    uvm_analysis_imp_cov_irq    #(sideband_seq_item, fft_coverage) irq_export;
+    uvm_analysis_imp_cov_dma_rx #(sideband_seq_item, fft_coverage) dma_rx_export;
+    uvm_analysis_imp_cov_dma_tx #(sideband_seq_item, fft_coverage) dma_tx_export;
+    ahb_seq_item                                                   cur_ahb_item;
+    sideband_seq_item                                              cur_sb_item;
 
     // ==================================================
     // AHB-Lite Bus Protocol Covergroup
@@ -68,8 +72,12 @@ class fft_coverage extends uvm_subscriber #(ahb_seq_item);
             bins INCR16 = {HBURST_INCR16};
         }
 
-        cross_addr_rw_resp: cross cp_addr_space, cp_write, cp_resp;
-        cross_size_resp:    cross cp_size, cp_resp;
+        cross_addr_rw_resp: cross cp_addr_space, cp_write, cp_resp {
+            ignore_bins illegal_unmapped_okay = binsof(cp_addr_space.UNMAPPED) && binsof(cp_resp.OKAY);
+        }
+        cross_size_resp:    cross cp_size, cp_resp {
+            ignore_bins illegal_subword_okay = (binsof(cp_size.HALFWORD) || binsof(cp_size.BYTE)) && binsof(cp_resp.OKAY);
+        }
         cross_burst_rw:     cross cp_burst, cp_write;
     endgroup
 
@@ -145,7 +153,9 @@ class fft_coverage extends uvm_subscriber #(ahb_seq_item);
     // ==================================================
     function new(string name = "fft_coverage", uvm_component parent = null);
         super.new(name, parent);
-        sideband_export = new("sideband_export", this);
+        irq_export    = new("irq_export", this);
+        dma_rx_export = new("dma_rx_export", this);
+        dma_tx_export = new("dma_tx_export", this);
 
         cg_ahb_protocol = new();
         cg_registers    = new();
@@ -166,7 +176,17 @@ class fft_coverage extends uvm_subscriber #(ahb_seq_item);
         end
     endfunction
 
-    virtual function void write_cov_sb(sideband_seq_item t);
+    virtual function void write_cov_irq(sideband_seq_item t);
+        cur_sb_item = t;
+        cg_sidebands.sample();
+    endfunction
+
+    virtual function void write_cov_dma_rx(sideband_seq_item t);
+        cur_sb_item = t;
+        cg_sidebands.sample();
+    endfunction
+
+    virtual function void write_cov_dma_tx(sideband_seq_item t);
         cur_sb_item = t;
         cg_sidebands.sample();
     endfunction

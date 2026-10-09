@@ -45,6 +45,7 @@ class fft_base_test extends uvm_test;
         m_env_cfg.is_active_sb       = UVM_PASSIVE;
         m_env_cfg.has_scoreboard     = 1'b1;
         m_env_cfg.has_coverage       = 1'b1;
+        m_env_cfg.has_reg_model      = 1'b1;
 
         // Retrieve physical interface handles from top-level testbench
         if (m_env_cfg.has_ahb_agent) begin
@@ -63,6 +64,17 @@ class fft_base_test extends uvm_test;
 
         // Instantiate verification environment
         m_env = fft_env::type_id::create("m_env", this);
+    endfunction
+
+    // ==================================================
+    // UVM Connect Phase
+    // ==================================================
+    virtual function void connect_phase(uvm_phase phase);
+        super.connect_phase(phase);
+        if (m_env.m_reg_model != null) begin
+            uvm_config_db#(fft_reg_block)::set(this, "*", "reg_model", m_env.m_reg_model);
+            uvm_config_db#(fft_reg_block)::set(null, "*", "reg_model", m_env.m_reg_model);
+        end
     endfunction
 
     // ==================================================
