@@ -2,7 +2,7 @@
 // File Name      : sideband_sequencer.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-09
-// Version        : 2.1 (Dedicated Signal FIFOs, Analysis Imps & Live State Tracking)
+// Version        : 2.1
 // Description    : Reactive sequencer for the sideband agent.
 //                  Maintains dedicated TLM analysis FIFOs and live state variables
 //                  for IRQ, DMA RX, and DMA TX, populated directly via analysis imps.

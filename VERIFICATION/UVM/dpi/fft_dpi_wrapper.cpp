@@ -2,7 +2,7 @@
 // File Name      : fft_dpi_wrapper.cpp
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-07
-// Version        : 2.0 (Direct 32-bit Packed Word C-Bridge)
+// Version        : 2.0
 // Description    : SystemVerilog DPI-C interface wrapper exporting the
 //                  handwritten C++ 32-point Radix-2 DIF reference model to UVM.
 //                  Directly receives packed 32-bit complex words {re[15:0], im[15:0]}.

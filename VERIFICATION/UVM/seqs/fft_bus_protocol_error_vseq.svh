@@ -1,23 +1,23 @@
 // =============================================================================
-// File Name      : fft_bus_error_seq.svh
+// File Name      : fft_bus_protocol_error_vseq.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-07
-// Version        : 2.0 (Direct Raw Bus Testing with Response)
-// Description    : Bus error and negative protocol stimulus sequence.
+// Version        : 4.0
+// Description    : Bus error and negative protocol virtual sequence.
 //                  Systematically exercises unaligned accesses, sub-word sizes,
-//                  unmapped addresses, and writes to read-only registers via write_bus/read_bus,
-//                  verifying 2-cycle HRESP_ERROR and immediate bus recovery.
+//                  unmapped addresses, and writes to read-only registers via raw
+//                  bus transfers, verifying 2-cycle HRESP_ERROR and immediate recovery.
 // =============================================================================
 
-`ifndef FFT_BUS_ERROR_SEQ_SVH
-`define FFT_BUS_ERROR_SEQ_SVH
+`ifndef FFT_BUS_PROTOCOL_ERROR_VSEQ_SVH
+`define FFT_BUS_PROTOCOL_ERROR_VSEQ_SVH
 
-class fft_bus_error_seq extends fft_base_vseq;
+class fft_bus_protocol_error_vseq extends fft_base_vseq;
 
     // ==================================================
     // Factory Registration
     // ==================================================
-    `uvm_object_utils(fft_bus_error_seq)
+    `uvm_object_utils(fft_bus_protocol_error_vseq)
 
     // ==================================================
     // Verification Statistics
@@ -29,7 +29,7 @@ class fft_bus_error_seq extends fft_base_vseq;
     // ==================================================
     // Constructor
     // ==================================================
-    function new(string name = "fft_bus_error_seq");
+    function new(string name = "fft_bus_protocol_error_vseq");
         super.new(name);
         num_expected_errors       = 0;
         num_detected_errors       = 0;
@@ -40,19 +40,19 @@ class fft_bus_error_seq extends fft_base_vseq;
     // Sequence Body Task
     // ==================================================
     virtual task body();
-        `uvm_info("BUS_ERR_SEQ", "Starting Bus Error & Negative Protocol Verification Sequence...", UVM_LOW)
+        `uvm_info("BUS_ERR_VSEQ", "Starting Bus Protocol Error Verification Sequence...", UVM_LOW)
 
         // ==================================================
         // Configurations
         // ==================================================
-        // Initial sanity read before injecting errors (Baseline Check)
+        // Initial baseline sanity read before injecting errors
         verify_bus_recovery("Initial Baseline Read");
 
         // ==================================================
         // Test Scenario
         // ==================================================
         // Unaligned Address Transfers
-        `uvm_info("BUS_ERR_SEQ", "Exercising Unaligned Address Accesses...", UVM_LOW)
+        `uvm_info("BUS_ERR_VSEQ", "Exercising Unaligned Address Accesses...", UVM_LOW)
         test_read_error(32'h001, HSIZE_WORD, "Unaligned read at 0x001");
         test_read_error(32'h002, HSIZE_WORD, "Unaligned read at 0x002");
         test_read_error(32'h003, HSIZE_WORD, "Unaligned read at 0x003");
@@ -64,7 +64,7 @@ class fft_bus_error_seq extends fft_base_vseq;
         verify_bus_recovery("Post-Unaligned-Access Recovery");
 
         // Sub-Word Transfer Sizes
-        `uvm_info("BUS_ERR_SEQ", "Exercising Sub-Word Transfer Sizes...", UVM_LOW)
+        `uvm_info("BUS_ERR_VSEQ", "Exercising Sub-Word Transfer Sizes...", UVM_LOW)
         test_read_error(ADDR_ID, HSIZE_BYTE, "Byte read on ADDR_ID");
         test_read_error(ADDR_ID, HSIZE_HALFWORD, "Half-word read on ADDR_ID");
         test_write_error(ADDR_CTRL, 32'h01, HSIZE_BYTE, "Byte write on ADDR_CTRL");
@@ -74,7 +74,7 @@ class fft_bus_error_seq extends fft_base_vseq;
         verify_bus_recovery("Post-Sub-Word-Size Recovery");
 
         // Unmapped Address Space Transfers
-        `uvm_info("BUS_ERR_SEQ", "Exercising Unmapped Address Space Accesses...", UVM_LOW)
+        `uvm_info("BUS_ERR_VSEQ", "Exercising Unmapped Address Space Accesses...", UVM_LOW)
         test_read_error(32'h028, HSIZE_WORD, "Read from unmapped register hole 0x028");
         test_write_error(32'h02C, 32'hFFFF_FFFF, HSIZE_WORD, "Write to unmapped register hole 0x02C");
         test_read_error(32'h040, HSIZE_WORD, "Read from unmapped register hole 0x040");
@@ -86,7 +86,7 @@ class fft_bus_error_seq extends fft_base_vseq;
         verify_bus_recovery("Post-Unmapped-Address Recovery");
 
         // Writes to Read-Only Registers
-        `uvm_info("BUS_ERR_SEQ", "Exercising Writes to Read-Only Registers...", UVM_LOW)
+        `uvm_info("BUS_ERR_VSEQ", "Exercising Writes to Read-Only Registers...", UVM_LOW)
         test_write_error(ADDR_ID, 32'hDEAD_BEEF, HSIZE_WORD, "Write to Read-Only ADDR_ID");
         test_write_error(ADDR_VERSION, 32'hDEAD_BEEF, HSIZE_WORD, "Write to Read-Only ADDR_VERSION");
         test_write_error(ADDR_STATUS, 32'hDEAD_BEEF, HSIZE_WORD, "Write to Read-Only ADDR_STATUS");
@@ -94,15 +94,13 @@ class fft_bus_error_seq extends fft_base_vseq;
         test_write_error(ADDR_OUT_LEVEL, 32'hDEAD_BEEF, HSIZE_WORD, "Write to Read-Only ADDR_OUT_LEVEL");
         verify_bus_recovery("Post-RO-Write-Protection Recovery");
 
-        `uvm_info("BUS_ERR_SEQ", $sformatf("Bus Error Sequence Completed: %0d/%0d errors caught, %0d successful recoveries",
+        `uvm_info("BUS_ERR_VSEQ", $sformatf("Bus Error Sequence Completed: %0d/%0d errors caught, %0d successful recoveries",
             num_detected_errors, num_expected_errors, num_successful_recoveries), UVM_LOW)
     endtask
 
     // ==================================================
-    // Negative Testing Verification Helpers
-    // (Directly Exercises write_bus & read_bus with response output)
+    // Negative Protocol Helpers
     // ==================================================
-    // Execute a read expecting an AHB ERROR response
     virtual task test_read_error(
         input bit [31:0]  addr,
         input ahb_size_e  size,
@@ -116,13 +114,12 @@ class fft_bus_error_seq extends fft_base_vseq;
 
         if (resp == HRESP_ERROR) begin
             num_detected_errors++;
-            `uvm_info("BUS_ERR_PASS", $sformatf("PASS: [HRESP_ERROR] detected as expected for %s (addr=0x%08h)", desc, addr), UVM_HIGH)
+            `uvm_info("BUS_ERR_PASS", $sformatf("PASS: [HRESP_ERROR] detected for %s (addr=0x%08h)", desc, addr), UVM_HIGH)
         end else begin
             `uvm_error("BUS_ERR_FAIL", $sformatf("FAIL: Expected HRESP_ERROR but got HRESP_OKAY for %s (addr=0x%08h)", desc, addr))
         end
     endtask
 
-    // Execute a write expecting an AHB ERROR response
     virtual task test_write_error(
         input bit [31:0]  addr,
         input bit [31:0]  wdata,
@@ -136,13 +133,12 @@ class fft_bus_error_seq extends fft_base_vseq;
 
         if (resp == HRESP_ERROR) begin
             num_detected_errors++;
-            `uvm_info("BUS_ERR_PASS", $sformatf("PASS: [HRESP_ERROR] detected as expected for %s (addr=0x%08h)", desc, addr), UVM_HIGH)
+            `uvm_info("BUS_ERR_PASS", $sformatf("PASS: [HRESP_ERROR] detected for %s (addr=0x%08h)", desc, addr), UVM_HIGH)
         end else begin
             `uvm_error("BUS_ERR_FAIL", $sformatf("FAIL: Expected HRESP_ERROR but got HRESP_OKAY for %s (addr=0x%08h)", desc, addr))
         end
     endtask
 
-    // Verify immediate recovery by issuing a valid read transaction
     virtual task verify_bus_recovery(input string phase_desc);
         bit [31:0] rdata;
         ahb_resp_e resp;
@@ -158,6 +154,6 @@ class fft_bus_error_seq extends fft_base_vseq;
         end
     endtask
 
-endclass : fft_bus_error_seq
+endclass : fft_bus_protocol_error_vseq
 
-`endif // FFT_BUS_ERROR_SEQ_SVH
+`endif // FFT_BUS_PROTOCOL_ERROR_VSEQ_SVH

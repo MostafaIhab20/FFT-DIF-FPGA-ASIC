@@ -2,8 +2,9 @@
 // File Name      : fft_sanity_test.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-05
-// Version        : 1.0
-// Description    : Sanity test executing peripheral discovery and DC FFT computation.
+// Version        : 2.0
+// Description    : Sanity test executing peripheral discovery and DC FFT computation
+//                  via fft_single_frame_vseq.
 // =============================================================================
 
 `ifndef FFT_SANITY_TEST_SVH
@@ -27,19 +28,19 @@ class fft_sanity_test extends fft_base_test;
     // UVM Run Phase
     // ==================================================
     virtual task run_phase(uvm_phase phase);
-        fft_sanity_seq seq;
+        fft_single_frame_vseq seq;
 
-        phase.raise_objection(this, "Starting fft_sanity_seq");
-        `uvm_info("SANITY_TEST", "Launching Sanity Verification Test...", UVM_LOW)
+        phase.raise_objection(this, "Starting fft_single_frame_vseq");
+        `uvm_info("SANITY_TEST", "Launching Single-Frame Sanity Verification Test...", UVM_LOW)
 
-        seq = fft_sanity_seq::type_id::create("seq");
+        seq = fft_single_frame_vseq::type_id::create("seq");
         seq.start(m_env.m_virtual_sequencer);
 
         // Allow drain time for final scoreboard and pipeline assertions
         #500ns;
 
-        `uvm_info("SANITY_TEST", "Sanity Verification Test Completed!", UVM_LOW)
-        phase.drop_objection(this, "Completed fft_sanity_seq");
+        `uvm_info("SANITY_TEST", "Single-Frame Sanity Verification Test Completed!", UVM_LOW)
+        phase.drop_objection(this, "Completed fft_single_frame_vseq");
     endtask
 
 endclass : fft_sanity_test

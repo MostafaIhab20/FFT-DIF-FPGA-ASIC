@@ -2,9 +2,9 @@
 // File Name      : fft_multi_frame_test.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-07
-// Version        : 1.0
-// Description    : Test bench executing continuous multi-frame random streaming.
-//                  Validates back-to-back pipeline processing across multiple frames.
+// Version        : 2.0
+// Description    : Test bench executing continuous multi-frame random streaming
+//                  via fft_multi_frame_vseq.
 // =============================================================================
 
 `ifndef FFT_MULTI_FRAME_TEST_SVH
@@ -28,14 +28,14 @@ class fft_multi_frame_test extends fft_base_test;
     // UVM Run Phase
     // ==================================================
     virtual task run_phase(uvm_phase phase);
-        fft_multi_frame_seq seq;
+        fft_multi_frame_vseq seq;
 
-        phase.raise_objection(this, "Starting fft_multi_frame_seq");
+        phase.raise_objection(this, "Starting fft_multi_frame_vseq");
         `uvm_info("MULTI_FRAME_TEST", "Launching Multi-Frame Random Streaming Test...", UVM_LOW)
 
-        seq = fft_multi_frame_seq::type_id::create("seq");
+        seq = fft_multi_frame_vseq::type_id::create("seq");
         if (!seq.randomize()) begin
-            `uvm_fatal("MULTI_FRAME_TEST", "Randomization failed for fft_multi_frame_seq")
+            `uvm_fatal("MULTI_FRAME_TEST", "Randomization failed for fft_multi_frame_vseq")
         end
         seq.start(m_env.m_virtual_sequencer);
 
@@ -43,7 +43,7 @@ class fft_multi_frame_test extends fft_base_test;
         #500ns;
 
         `uvm_info("MULTI_FRAME_TEST", "Multi-Frame Random Streaming Test Completed!", UVM_LOW)
-        phase.drop_objection(this, "Completed fft_multi_frame_seq");
+        phase.drop_objection(this, "Completed fft_multi_frame_vseq");
     endtask
 
 endclass : fft_multi_frame_test

@@ -20,7 +20,6 @@ import ahb_types_pkg::*;
 import ahb_agent_pkg::*;
 import sideband_agent_pkg::*;
 import fft_env_pkg::*;
-import fft_seq_pkg::*;
 import fft_test_pkg::*;
 
 module tb_top_uvm;

@@ -1,28 +1,27 @@
 // =============================================================================
-// File Name      : fft_coverage_closure_seq.svh
+// File Name      : fft_stress_vseq.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-07
-// Version        : 2.0 (Direct RAL Control & FIFO Streaming)
-// Description    : Corner-case coverage closure stimulus sequence.
-//                  Targets butterfly clamping boundaries, multiplier saturation,
-//                  backpressure core stalling, unaligned wait-state assertions,
-//                  and bus transfer condition toggle permutations.
+// Version        : 4.0
+// Description    : Stress virtual sequence targeting butterfly arithmetic limits,
+//                  multiplier saturation, downstream backpressure stalling
+//                  (OUT FIFO full = 64), pipelined error wait-states, and bus toggles.
 // =============================================================================
 
-`ifndef FFT_COVERAGE_CLOSURE_SEQ_SVH
-`define FFT_COVERAGE_CLOSURE_SEQ_SVH
+`ifndef FFT_STRESS_VSEQ_SVH
+`define FFT_STRESS_VSEQ_SVH
 
-class fft_coverage_closure_seq extends fft_base_vseq;
+class fft_stress_vseq extends fft_base_vseq;
 
     // ==================================================
     // Factory Registration
     // ==================================================
-    `uvm_object_utils(fft_coverage_closure_seq)
+    `uvm_object_utils(fft_stress_vseq)
 
     // ==================================================
     // Constructor
     // ==================================================
-    function new(string name = "fft_coverage_closure_seq");
+    function new(string name = "fft_stress_vseq");
         super.new(name);
     endfunction
 
@@ -34,13 +33,14 @@ class fft_coverage_closure_seq extends fft_base_vseq;
         uvm_reg_data_t rdata;
         bit [31:0]     frame_samples[32];
         bit [31:0]     burst_err_payload[4];
+        bit [31:0]     popped_64[];
 
-        `uvm_info("COV_CLOSURE_SEQ", "Starting FFT Coverage Closure Verification Sequence...", UVM_LOW)
+        `uvm_info("STRESS_VSEQ", "Starting FFT Stress Verification Sequence...", UVM_LOW)
 
         // ==================================================
         // Configurations
         // ==================================================
-        // Read Identification Registers via RAL
+        // Identification Check via RAL
         reg_model.reg_id.read(status, rdata);
         reg_model.reg_version.read(status, rdata);
 
@@ -50,10 +50,9 @@ class fft_coverage_closure_seq extends fft_base_vseq;
         // ==================================================
         // Test Scenario
         // ==================================================
-        // Phase 1: Butterfly Saturation Clamping Across All 5 Stages
+        // Butterfly Saturation Clamping Across All 5 Stages
         // (Clamps when A - B + 1 == 65536: A = +32767 [0x7FFF], B = -32768 [0x8000])
-        // =====================================================================
-        `uvm_info("COV_CLOSURE_SEQ", "Phase 1: Testing Butterfly Clamping & Multiplier Saturation...", UVM_LOW)
+        `uvm_info("STRESS_VSEQ", "Testing Butterfly Clamping & Multiplier Saturation...", UVM_LOW)
 
         // Vector 0: Stage 0 (Delay = 16) -> First 16 samples +32767, last 16 samples -32768
         for (int i = 0; i < 32; i++) begin
@@ -97,112 +96,78 @@ class fft_coverage_closure_seq extends fft_base_vseq;
         end
         run_frame_test(frame_samples, "Inverse Sign Saturation Vector");
 
-        // =====================================================================
-        // Phase 2: Downstream Backpressure Stalling (clk_en = 0, ip_ce = 0)
-        // =====================================================================
-        `uvm_info("COV_CLOSURE_SEQ", "Phase 2: Testing Downstream Backpressure & Core Stalling...", UVM_LOW)
+        // Downstream Backpressure Stalling (clk_en = 0, ip_ce = 0)
+        `uvm_info("STRESS_VSEQ", "Testing Downstream Backpressure & Core Stalling...", UVM_LOW)
 
-        // Load Frame 1 (32 samples) and enable core via RAL
+        // Stream Frame 1 (32 samples) and enable core
         for (int i = 0; i < 32; i++) frame_samples[i] = 32'h1000_0000;
-        for (int i = 0; i < 32; i++) push_sample(frame_samples[i]);
-        reg_model.reg_ctrl.write(status, 32'h01); // Enable core
+        push_samples_burst(frame_samples, HBURST_INCR);
+        reg_model.reg_ctrl.write(status, 32'h01);
 
-        // Wait until OUT FIFO holds 32 samples (Do NOT pop them yet!)
+        // Await Frame 1 processing: OUT FIFO reaches 32 samples
         wait_for_out_level(32, 2000);
         wait_for_idle(2000);
         reg_model.reg_int_status.write(status, 32'h01); // Clear frame done
 
-        // Immediately push Frame 2 (32 samples) into IN FIFO while OUT FIFO holds 32 samples
-        for (int i = 0; i < 32; i++) push_sample(frame_samples[i]);
+        // Immediately push Frame 2 (32 samples) while OUT FIFO holds 32 samples
+        push_samples_burst(frame_samples, HBURST_INCR);
 
-        // Await OUT FIFO reaching full capacity (64 samples)
-        // Once OUT FIFO reaches 64 samples, ip_ce (~out_full) deasserts to 0 and stalls clk_en!
+        // Await OUT FIFO reaching full capacity (64 samples) -> stalls clk_en!
         wait_for_out_level(64, 2000);
 
-        // Read STATUS register via RAL to confirm out_full is asserted
+        // Confirm out_full (STATUS[4]) is asserted
         reg_model.reg_status.read(status, rdata);
-        `uvm_info("COV_CLOSURE_SEQ", $sformatf("STATUS with full OUT FIFO: 0x%08h (out_full bit = %0b)", rdata, rdata[4]), UVM_LOW)
+        `uvm_info("STRESS_VSEQ", $sformatf("STATUS with full OUT FIFO: 0x%08h (out_full bit = %0b)", rdata, rdata[4]), UVM_LOW)
 
         // Idle for 100 clock cycles while clk_en is stalled to ensure coverage sampling
         idle_cycles(100);
 
-        // Pop all 64 samples from OUT FIFO to relieve backpressure and resume core
-        for (int i = 0; i < 64; i++) begin
-            bit [31:0] s;
-            pop_sample(s);
-        end
+        // Pop all 64 samples from OUT FIFO via INCR burst to relieve backpressure
+        pop_samples_burst(popped_64, 64, HBURST_INCR);
 
-        // Await idle state and clear interrupts via RAL
+        // Await idle state and clear interrupts
         wait_for_idle(1000);
         reg_model.reg_int_status.write(status, 32'h07);
-        reg_model.reg_ctrl.write(status, 32'h00); // Disable core
+        reg_model.reg_ctrl.write(status, 32'h00);
 
-        // =====================================================================
-        // Phase 3: Pipelined Error Wait State & SVA Stability Assertion
-        // =====================================================================
-        `uvm_info("COV_CLOSURE_SEQ", "Phase 3: Testing Pipelined Error Wait-State & SVA Stability...", UVM_LOW)
+        // Pipelined Error Wait State & SVA Stability Assertion
+        `uvm_info("STRESS_VSEQ", "Testing Pipelined Error Wait-State & SVA Stability...", UVM_LOW)
 
-        // Issue a 4-beat burst to an unaligned address (0x001)
-        // Beat 0 detects unaligned access -> Cycle 1 asserts HRESP_ERROR and deasserts HREADYOUT=0.
-        // During Cycle 1, Beat 1 address phase is presented with HSEL=1, HTRANS=SEQ.
-        // Because HREADYOUT=0, Beat 1 address/controls are held stable -> triggers assert_addr_ctrl_stable!
+        // Issue a 4-beat burst to unaligned address 0x001
         foreach (burst_err_payload[i]) burst_err_payload[i] = 32'hA5A5_5A5A;
         write_burst(32'h001, burst_err_payload, HBURST_INCR4);
 
-        // Allow bus recovery by performing a clean aligned read via RAL
+        // Verify clean bus recovery via RAL read
         reg_model.reg_id.read(status, rdata);
-        `uvm_info("COV_CLOSURE_SEQ", $sformatf("Bus recovered after pipelined error: ID = 0x%08h", rdata), UVM_LOW)
+        `uvm_info("STRESS_VSEQ", $sformatf("Bus recovered after pipelined error: ID = 0x%08h", rdata), UVM_LOW)
 
-        // =====================================================================
-        // Phase 4: Deselected Slave and Selected IDLE Transfers
-        // =====================================================================
-        `uvm_info("COV_CLOSURE_SEQ", "Phase 4: Testing Deselected Slave & Selected IDLE Transfers...", UVM_LOW)
+        // Deselected Slave and Selected IDLE Transfers
+        `uvm_info("STRESS_VSEQ", "Testing Deselected Slave & Selected IDLE Transfers...", UVM_LOW)
 
-        // Transfer 1: Deselected slave (HSEL = 0, HTRANS = NONSEQ) -> hits HSEL_0 in (HSEL & HTRANS[1])
+        // Transfer 1: Deselected slave (HSEL = 0, HTRANS = NONSEQ)
         drive_raw_cycle(32'h000, 1'b0, HTRANS_NONSEQ, 1'b0);
 
-        // Transfer 2: Selected IDLE (HSEL = 1, HTRANS = IDLE) -> hits HTRANS[1]_0 in (HSEL & HTRANS[1])
+        // Transfer 2: Selected IDLE (HSEL = 1, HTRANS = IDLE)
         drive_raw_cycle(32'h000, 1'b1, HTRANS_IDLE, 1'b0);
 
         // Transfer 3: Selected BUSY (HSEL = 1, HTRANS = BUSY)
         drive_raw_cycle(32'h000, 1'b1, HTRANS_BUSY, 1'b0);
 
-        // Final verification read via RAL
+        // Final verification read
         reg_model.reg_id.read(status, rdata);
 
-        `uvm_info("COV_CLOSURE_SEQ", "FFT Coverage Closure Verification Sequence Completed Successfully!", UVM_LOW)
+        `uvm_info("STRESS_VSEQ", "FFT Stress Verification Sequence Completed Successfully!", UVM_LOW)
     endtask
 
-    // Helper: Run an end-to-end frame test and drain output
+    // Helper: Run an end-to-end frame test utilizing built-in helpers
     virtual task run_frame_test(input bit [31:0] samples[32], input string desc);
         uvm_status_e status;
-        bit [31:0]   out_val;
+        `uvm_info("STRESS_FRAME", $sformatf("Streaming saturation frame: %s", desc), UVM_MEDIUM)
 
-        `uvm_info("COV_CLOSURE_FRAME", $sformatf("Streaming frame: %s", desc), UVM_MEDIUM)
-
-        // Push 32 samples into IN FIFO
-        for (int i = 0; i < 32; i++) begin
-            push_sample(samples[i]);
-        end
-
-        // Enable FFT Core via RAL
         reg_model.reg_ctrl.write(status, 32'h01);
-
-        // Wait for reactive sideband IRQ & output bins
+        push_samples_burst(samples, HBURST_INCR);
         wait_for_irq(1'b1);
-        wait_for_out_level(32, 2000);
-        wait_for_idle(2000);
-
-        // Pop 32 output bins
-        for (int i = 0; i < 32; i++) begin
-            pop_sample(out_val);
-        end
-
-        // Clear interrupt via RAL (W1C)
-        reg_model.reg_int_status.write(status, 32'h01);
-        wait_for_irq(1'b0);
-
-        // Disable FFT Core via RAL
+        handle_frame_done();
         reg_model.reg_ctrl.write(status, 32'h00);
     endtask
 
@@ -223,11 +188,11 @@ class fft_coverage_closure_seq extends fft_base_vseq;
             req.burst == HBURST_SINGLE;
             req.size  == HSIZE_WORD;
         }) begin
-            `uvm_fatal("COV_CLOSURE_SEQ", "Randomization failed for drive_raw_cycle")
+            `uvm_fatal("STRESS_VSEQ", "Randomization failed for drive_raw_cycle")
         end
         finish_item(req);
     endtask
 
-endclass : fft_coverage_closure_seq
+endclass : fft_stress_vseq
 
-`endif // FFT_COVERAGE_CLOSURE_SEQ_SVH
+`endif // FFT_STRESS_VSEQ_SVH

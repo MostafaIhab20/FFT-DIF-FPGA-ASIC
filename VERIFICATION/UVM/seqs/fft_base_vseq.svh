@@ -30,12 +30,9 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
     localparam bit [31:0] ADDR_VERSION    = 32'h004;
     localparam bit [31:0] ADDR_CTRL       = 32'h008;
     localparam bit [31:0] ADDR_STATUS     = 32'h00C;
-    localparam bit [31:0] ADDR_INT_EN     = 32'h010;
     localparam bit [31:0] ADDR_INT_STATUS = 32'h014;
     localparam bit [31:0] ADDR_IN_LEVEL   = 32'h018;
     localparam bit [31:0] ADDR_OUT_LEVEL  = 32'h01C;
-    localparam bit [31:0] ADDR_IN_THRESH  = 32'h020;
-    localparam bit [31:0] ADDR_OUT_THRESH = 32'h024;
     localparam bit [31:0] ADDR_FIFO_DATA  = 32'h100;
 
     // ==================================================
@@ -277,17 +274,17 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
         uvm_reg_data_t rdata;
         ahb_resp_e     dummy_resp;
 
-        // 1. Drain 32 output samples from OUT FIFO via INCR burst
+        // Drain 32 output samples from OUT FIFO via INCR burst
         pop_samples_burst(popped_frame, 32, HBURST_INCR);
 
-        // 2. Clear FRAME_DONE interrupt via RAL (W1C bit 0)
+        // Clear FRAME_DONE interrupt via RAL (W1C bit 0)
         if (reg_model != null && reg_model.reg_int_status != null) begin
             reg_model.reg_int_status.write(status, 32'h01);
         end else begin
             write_bus(ADDR_INT_STATUS, 32'h01, dummy_resp);
         end
 
-        // 3. Verify status bit cleared
+        // Verify status bit cleared
         if (reg_model != null && reg_model.reg_int_status != null) begin
             reg_model.reg_int_status.read(status, rdata);
             if (rdata[0] !== 1'b0) begin
@@ -303,7 +300,7 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
 
         `uvm_info("BASE_VSEQ", "Handling IN_OVERFLOW interrupt: Flushing IN FIFO and clearing flag...", UVM_MEDIUM)
 
-        // 1. Flush IN FIFO via CTRL[30]
+        // Flush IN FIFO via CTRL[30]
         if (reg_model != null && reg_model.reg_ctrl != null) begin
             reg_model.reg_ctrl.write(status, 32'h4000_0001);
             repeat (20) reg_model.reg_status.read(status, rdata);
@@ -312,7 +309,7 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
             repeat (20) read_bus(ADDR_STATUS, rdata[31:0], dummy_resp);
         end
 
-        // 2. Clear IN_OVERFLOW flag via RAL (W1C bit 1)
+        // Clear IN_OVERFLOW flag via RAL (W1C bit 1)
         if (reg_model != null && reg_model.reg_int_status != null) begin
             reg_model.reg_int_status.write(status, 32'h02);
         end else begin
@@ -327,7 +324,7 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
 
         `uvm_info("BASE_VSEQ", "Handling OUT_UNDERFLOW interrupt: Flushing OUT FIFO and clearing flag...", UVM_MEDIUM)
 
-        // 1. Flush OUT FIFO via CTRL[31]
+        // Flush OUT FIFO via CTRL[31]
         if (reg_model != null && reg_model.reg_ctrl != null) begin
             reg_model.reg_ctrl.write(status, 32'h8000_0001);
             repeat (20) reg_model.reg_status.read(status, rdata);
@@ -336,7 +333,7 @@ class fft_base_vseq extends uvm_sequence #(uvm_sequence_item);
             repeat (20) read_bus(ADDR_STATUS, rdata[31:0], dummy_resp);
         end
 
-        // 2. Clear OUT_UNDERFLOW flag via RAL (W1C bit 2)
+        // Clear OUT_UNDERFLOW flag via RAL (W1C bit 2)
         if (reg_model != null && reg_model.reg_int_status != null) begin
             reg_model.reg_int_status.write(status, 32'h04);
         end else begin

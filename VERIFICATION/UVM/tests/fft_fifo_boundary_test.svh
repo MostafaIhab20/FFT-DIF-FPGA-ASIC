@@ -2,9 +2,9 @@
 // File Name      : fft_fifo_boundary_test.svh
 // Author         : Mostafa Ihab
 // Creation Date  : 2026-10-07
-// Version        : 1.0
+// Version        : 2.0
 // Description    : Test bench executing FIFO boundary, overflow, and underflow
-//                  verification scenarios for the FFT peripheral.
+//                  verification scenarios via fft_fifo_boundary_overflow_vseq.
 // =============================================================================
 
 `ifndef FFT_FIFO_BOUNDARY_TEST_SVH
@@ -28,19 +28,19 @@ class fft_fifo_boundary_test extends fft_base_test;
     // UVM Run Phase
     // ==================================================
     virtual task run_phase(uvm_phase phase);
-        fft_fifo_boundary_seq seq;
+        fft_fifo_boundary_overflow_vseq seq;
 
-        phase.raise_objection(this, "Starting fft_fifo_boundary_seq");
+        phase.raise_objection(this, "Starting fft_fifo_boundary_overflow_vseq");
         `uvm_info("FIFO_BND_TEST", "Launching FIFO Boundary Verification Test...", UVM_LOW)
 
-        seq = fft_fifo_boundary_seq::type_id::create("seq");
+        seq = fft_fifo_boundary_overflow_vseq::type_id::create("seq");
         seq.start(m_env.m_virtual_sequencer);
 
         // Allow drain time for final scoreboard and pipeline assertions
         #500ns;
 
         `uvm_info("FIFO_BND_TEST", "FIFO Boundary Verification Test Completed!", UVM_LOW)
-        phase.drop_objection(this, "Completed fft_fifo_boundary_seq");
+        phase.drop_objection(this, "Completed fft_fifo_boundary_overflow_vseq");
     endtask
 
 endclass : fft_fifo_boundary_test

@@ -27,7 +27,7 @@ class fft_scenario_cfg extends uvm_object;
     // Constraints
     // ==================================================
     constraint c_num_frames {
-        soft num_frames inside {[3:8]};
+        soft num_frames inside {[300:800]};
     }
 
     constraint c_frames_dim {
