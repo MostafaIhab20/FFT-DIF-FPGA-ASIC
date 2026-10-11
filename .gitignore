@@ -24,8 +24,9 @@ covhtmlreport/
 *.so
 *.dylib
 *.o
-*.obj
-*/Questa_SIM
+**/coverage/
+**/logs/
+**/tr_db.log
 
 # ------------------------------------------------------------------------------
 # Xilinx / AMD Vivado Artifacts

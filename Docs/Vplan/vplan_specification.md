@@ -142,25 +142,27 @@ The UVM testbench environment is architected for modularity, reusability, and pr
 ```
 uvm_test_top (fft_base_test / derived tests)
  └── env (fft_env)
-      ├── ahb_agt (ahb_agent - UVM_ACTIVE)
+      ├── ahb_agent (ahb_agent - UVM_ACTIVE)
       │    ├── sqr (ahb_sequencer)
       │    ├── drv (ahb_driver)
       │    └── mon (ahb_monitor)
-      ├── sideband_agt (sideband_agent - UVM_PASSIVE)
-      │    └── mon (sideband_monitor)
-      ├── sb (fft_scoreboard)
-      │    └── ref_model (fft_golden_model)
-      ├── cov (fft_coverage)
-      └── reg_model (fft_reg_block - Integrated in Phase 5)
-           ├── reg2ahb (ahb_reg_adapter)
-           └── predictor (uvm_reg_predictor #(ahb_seq_item))
+      ├── sideband_agent (sideband_agent - UVM_PASSIVE)
+      │    ├── mon (sideband_monitor)
+      │    └── sqr (sideband_sequencer - reactive sync)
+      ├── m_scoreboard (fft_scoreboard)
+      │    └── DPI-C Model (fft_dpi_pkg::fft_radix2_dif_32)
+      ├── m_coverage (fft_coverage)
+      ├── m_reg_model (fft_reg_block - RAL)
+      │    ├── m_reg_adapter (ahb_reg_adapter)
+      │    └── m_reg_predictor (uvm_reg_predictor #(ahb_seq_item))
+      └── m_virtual_sequencer (fft_virtual_sequencer)
 ```
 
 ### Component Roles
 - **`ahb_agent`**: Encapsulates sequencer, driver, and passive monitor connected to `ahb_if`. Operates as an active master driver during stimulus execution and passively monitors all bus transactions.
-- **`sideband_agent`**: Passive monitor capturing cycle-accurate transitions on `irq`, `dma_rx_req`, and `dma_tx_req`.
-- **`fft_golden_model`**: Bit-accurate software reference model computing 32-point DIF FFT in Q1.15 with identical $+1$ Round-Half-Up scaling and saturation.
-- **`fft_scoreboard`**: Compares actual read data from register space and FIFO space against shadow register states and golden FFT calculations.
+- **`sideband_agent`**: Passive monitor capturing cycle-accurate transitions on `irq`, `dma_rx_req`, and `dma_tx_req`, feeding a reactive sequencer with export FIFOs for synchronous sequence waits.
+- **`fft_dpi_pkg`**: Bit-accurate C++ DPI-C foreign function interface (`fft_radix2_dif_32`) executing 32-point DIF FFT calculations in Q1.15 fixed-point arithmetic with identical scaling and saturation.
+- **`fft_scoreboard`**: Dynamically aggregates streamed samples into complete frames, invokes the C++ DPI-C model, and verifies DUT outputs within $\pm 1$ LSB tolerance while checking register operations against shadow states.
 - **`fft_coverage`**: Subscribes to transaction streams to sample protocol, register, and flow control covergroups.
 
 ### Virtual Interface Timing and Skew
@@ -189,11 +191,11 @@ uvm_test_top (fft_base_test / derived tests)
 | Test ID | Test Name | Target Features | Test Type | Stimulus & Pass Criteria | Priority |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **TEST-01** | `fft_sanity_test` | `FEAT-AHB-01, FEAT-REG-01, FEAT-CORE-01, FEAT-IRQ-02, FEAT-IRQ-03` | Directed | Reads ID/VER, injects 32 DC samples (`0x6CCD_0000`), enables core, validates DC output bin = `0x6CCD_0000` & AC bins = 0, clears interrupt via W1C. | Critical |
-| **TEST-02** | `fft_reg_access_test` | `FEAT-REG-01..09` | CRV + Directed | Exhaustive register write/read-back, default reset verification, RO write-protection error checking. | High |
+| **TEST-02** | `fft_reg_reset_test` | `FEAT-REG-01..09` | UVM Standard + Directed | Standard hardware reset sequence (`uvm_reg_hw_reset_seq`), exhaustive register write/read-back, default reset verification, RO write-protection error checking. | High |
 | **TEST-03** | `fft_bus_error_test` | `FEAT-AHB-03..05, FEAT-REG-09` | CRV + Directed | Drives unaligned addresses, illegal transfer sizes, and unmapped address regions; expects 2-cycle `HRESP_ERROR`. | High |
 | **TEST-04** | `fft_fifo_boundary_test` | `FEAT-FIFO-03..06, FEAT-REG-06` | Directed | Fills IN FIFO to 64 words, writes 65th word (overflow), attempts read on empty OUT FIFO (underflow), verifies sticky W1C clearing. | High |
 | **TEST-05** | `fft_dma_handshake_test` | `FEAT-DMA-01..03, FEAT-REG-08` | CRV + Directed | Programs non-default thresholds, verifies dynamic assertion and deassertion of `dma_rx_req` and `dma_tx_req`. | Medium |
-| **TEST-06** | `fft_multi_frame_stream_test` | `FEAT-CORE-01, FEAT-CORE-05, FEAT-FIFO-01` | Constrained Random | Streams 10 consecutive frames (320 samples) of randomized complex data; scoreboard validates outputs within $\pm 1$ LSB tolerance. | Critical |
+| **TEST-06** | `fft_multi_frame_test` | `FEAT-CORE-01, FEAT-CORE-05, FEAT-FIFO-01` | Constrained Random | Streams multiple consecutive frames of randomized complex data; scoreboard validates outputs against C++ DPI-C model within $\pm 1$ LSB tolerance. | Critical |
 | **TEST-07** | `fft_reset_flush_test` | `FEAT-CTRL-01..04` | Directed | Tests independent `flush_in`, `flush_out`, and synchronous `soft_reset` mid-computation; verifies clean return to IDLE. | High |
 | **TEST-08** | `fft_burst_test` | `FEAT-AHB-01..05, FEAT-REG-01..09` | Constrained Random | Full AHB burst suites (SINGLE, INCR, WRAP4/8/16, INCR4/8/16) with randomized wait states; validates UVM RAL register bit-bash and reset checks. | High |
 | **TEST-09** | `fft_coverage_closure_test` | `FEAT-CORE-01..05, FEAT-AHB-01..05` | Directed Corner-Case | Closes arithmetic clamping ($A-B+1=65536$), multiplier overflow ceiling, backpressure core stalling (`clk_en=0`), SVA wait-state stability (`assert_addr_ctrl_stable`). | Critical |
@@ -228,22 +230,22 @@ Phase 1: Verification Plan (vPlan) & Feature Matrix  <== [COMPLETED]
    ▼
 Phase 2: Build UVC Agents (AHB Master Agent & Sideband Interface)  <== [COMPLETED]
    │     • ahb_if, ahb_seq_item, ahb_driver (pipelined), ahb_monitor, ahb_sequencer
-   │     • sideband_if & sideband_monitor
+   │     • sideband_if & sideband_monitor, sideband_sequencer (reactive)
    │
    ▼
 Phase 3: Build UVM Environment, Reference Model & Base Tests  <== [COMPLETED]
-   │     • fft_env, fft_scoreboard (Golden DIF FFT Model), fft_coverage
+   │     • fft_env, fft_scoreboard, fft_coverage
    │     • fft_base_test, fft_sanity_test, simulation run script integration
    │
    ▼
 Phase 4: Test Suite Execution & DPI-C Integration  <== [COMPLETED]
    │     • Complete 9-test suite (protocol errors, FIFO boundaries, bursts, streaming)
-   │     • Dual-golden reference check with C++ DPI-C reference library (fft_golden_c.cpp)
+   │     • Bit-accurate C++ reference library integrated via pure DPI-C (fft_radix2_dif.cpp / fft_dpi_wrapper.cpp)
    │
    ▼
 Phase 5: Register Abstraction Layer (RAL) Integration  <== [COMPLETED]
    │     • Built fft_reg_block, ahb_reg_adapter & connected uvm_reg_predictor
-   │     • Validated frontdoor register operations and reset state
+   │     • Validated frontdoor register operations and standard reset state (fft_reg_reset_test)
    │
    ▼
 Phase 6: Coverage Closure & Sign-Off Documentation  <== [COMPLETED]
@@ -268,5 +270,3 @@ Phase 6: Coverage Closure & Sign-Off Documentation  <== [COMPLETED]
 | **Regression Suite Pass Rate** | 100.0% | **100.0%** (9/9 tests) | **CLOSED** | 9 / 9 UVM test scenarios passing cleanly with 0 errors and 0 warnings. |
 | **Golden Reference Model Accuracy** | 100.0% | **100.0%** | **CLOSED** | Bit-accurate match against SV scoreboard and C++ DPI-C golden reference model ($\pm 1$ LSB tolerance). |
 
-> [!NOTE]
-> Detailed per-module coverage analysis, architectural justifications for all unhit bins, and formal exclusion rationale are documented in [`Docs/Vplan/coverage_waiver_matrix.md`](file:///c:/MY_PROJETS/RTL2GDS_FFT32/FFT-DIF-FPGA-ASIC/Docs/Vplan/coverage_waiver_matrix.md).
